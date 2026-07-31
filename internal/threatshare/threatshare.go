@@ -40,7 +40,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
 )
 
 // DefaultTTL is how long a block relayed in from a peer stays enforced

@@ -17,17 +17,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/anomaly"
-	"github.com/shivanshu-agarwal/sentryx/internal/api"
-	"github.com/shivanshu-agarwal/sentryx/internal/capture"
-	"github.com/shivanshu-agarwal/sentryx/internal/dnsresolve"
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
-	"github.com/shivanshu-agarwal/sentryx/internal/geoip"
-	"github.com/shivanshu-agarwal/sentryx/internal/policy"
-	"github.com/shivanshu-agarwal/sentryx/internal/store"
-	"github.com/shivanshu-agarwal/sentryx/internal/threatintel"
-	"github.com/shivanshu-agarwal/sentryx/internal/threatshare"
-	"github.com/shivanshu-agarwal/sentryx/internal/topology"
+	"github.com/shivanshuagrwl/SentryX/internal/anomaly"
+	"github.com/shivanshuagrwl/SentryX/internal/api"
+	"github.com/shivanshuagrwl/SentryX/internal/capture"
+	"github.com/shivanshuagrwl/SentryX/internal/dnsresolve"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/geoip"
+	"github.com/shivanshuagrwl/SentryX/internal/policy"
+	"github.com/shivanshuagrwl/SentryX/internal/store"
+	"github.com/shivanshuagrwl/SentryX/internal/threatintel"
+	"github.com/shivanshuagrwl/SentryX/internal/threatshare"
+	"github.com/shivanshuagrwl/SentryX/internal/topology"
 )
 
 const banner = `
@@ -41,7 +41,7 @@ $$ |$$$/ $$ |$$ \__$$ |$$ \__/  |$$ |__$$ |  $$ $$/   $$ |  $$ |$$ |_____$$ |
 $$ | $/  $$ |$$    $$/ $$    $$/ $$    $$/    $$$/    $$ |  $$ |$$       |
 $$/      $$/  $$$$$$/   $$$$$$/  $$$$$$$/      $/     $$/   $$/ $$$$$$$$/
 
-  kernel-speed packet interdiction · github.com/shivanshu-agarwal/sentryx
+  kernel-speed packet interdiction · github.com/shivanshuagrwl/SentryX
 `
 
 // run holds sentryxd's entire lifecycle: parse flags, attach the

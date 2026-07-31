@@ -1,4 +1,4 @@
-module github.com/shivanshu-agarwal/sentryx
+module github.com/shivanshuagrwl/SentryX
 
 go 1.22
 

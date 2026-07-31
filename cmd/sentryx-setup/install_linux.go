@@ -11,7 +11,7 @@ import (
 
 const systemdUnitTemplate = `[Unit]
 Description=SENTRYX — kernel-speed XDP packet interdiction daemon
-Documentation=https://github.com/shivanshu-agarwal/sentryx
+Documentation=https://github.com/shivanshuagrwl/SentryX
 After=network-online.target
 Wants=network-online.target
 

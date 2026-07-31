@@ -36,7 +36,7 @@ func main() {
 	var (
 		port        = flag.Int("port", 0, "port to serve the wizard on (0 = pick a free port automatically)")
 		openBrowser = flag.Bool("open", true, "open the default browser automatically")
-		releaseBase = flag.String("release-base", "https://github.com/shivanshu-agarwal/sentryx/releases/latest/download", "base URL release binaries are downloaded from if not found locally")
+		releaseBase = flag.String("release-base", "https://github.com/shivanshuagrwl/SentryX/releases/latest/download", "base URL release binaries are downloaded from if not found locally")
 		addr        = flag.String("api-addr", ":9090", "address sentryxd's control API will listen on once installed")
 	)
 	flag.Parse()

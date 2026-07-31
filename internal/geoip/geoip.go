@@ -41,7 +41,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
 )
 
 // ZoneURLTemplate is ipdeny.com's per-country plaintext CIDR list. %s is

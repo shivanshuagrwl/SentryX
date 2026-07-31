@@ -14,7 +14,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/policy"
+	"github.com/shivanshuagrwl/SentryX/internal/policy"
 )
 
 // node is one daemon a controller run talks to. It's intentionally the same

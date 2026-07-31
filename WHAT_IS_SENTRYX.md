@@ -66,7 +66,7 @@ step ever seems to ask you to type commands, that's not the intended path
 Open this link in your browser:
 
 ```
-https://github.com/shivanshu-agarwal/sentryx/releases/latest
+https://github.com/shivanshuagrwl/SentryX/releases/latest
 ```
 
 You'll see three files. Download the one for your computer:

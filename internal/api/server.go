@@ -13,13 +13,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/anomaly"
-	"github.com/shivanshu-agarwal/sentryx/internal/capture"
-	"github.com/shivanshu-agarwal/sentryx/internal/dnsresolve"
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
-	"github.com/shivanshu-agarwal/sentryx/internal/store"
-	"github.com/shivanshu-agarwal/sentryx/internal/threatshare"
-	"github.com/shivanshu-agarwal/sentryx/internal/topology"
+	"github.com/shivanshuagrwl/SentryX/internal/anomaly"
+	"github.com/shivanshuagrwl/SentryX/internal/capture"
+	"github.com/shivanshuagrwl/SentryX/internal/dnsresolve"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/store"
+	"github.com/shivanshuagrwl/SentryX/internal/threatshare"
+	"github.com/shivanshuagrwl/SentryX/internal/topology"
 )
 
 // dashboardFS embeds the control-room UI directly into the sentryxd binary

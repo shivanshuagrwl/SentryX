@@ -28,7 +28,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
 )
 
 // Rule is a single blocklist entry as written in policy.yaml.

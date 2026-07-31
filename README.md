@@ -11,15 +11,13 @@ so nothing ever needs to be recompiled or reloaded to block an address,
 change a rate limit, or read live traffic stats.
 
 ```
- __      __   ______   ______   _______   __     __   ______   __       __
-/  \    /  | /      \ /      \ /       \ /  |   /  | /      \ /  |     /  |
-$$  \  /$$ |/$$$$$$  |/$$$$$$  |$$$$$$$  |$$ |   $$ |/$$$$$$  |$$ |     $$ |
-$$$  \/$$$ |$$ |  $$ |$$ |  $$/ $$ |  $$ |$$ |   $$ |$$ |__$$ |$$ |     $$ |
-$$$$  $$$$ |$$ |  $$ |$$ |      $$ |  $$ |$$  \ /$$/ $$    $$ |$$ |     $$ |
-$$ $$ $$/$$ |$$ |  $$ |$$ |   __ $$ |  $$ | $$  /$$/  $$$$$$$$ |$$ |     $$ |
-$$ |$$$/ $$ |$$ \__$$ |$$ \__/  |$$ |__$$ |  $$ $$/   $$ |  $$ |$$ |_____$$ |
-$$ | $/  $$ |$$    $$/ $$    $$/ $$    $$/    $$$/    $$ |  $$ |$$       |
-$$/      $$/  $$$$$$/   $$$$$$/  $$$$$$$/      $/     $$/   $$/ $$$$$$$$/
+```
+███████╗███████╗███╗   ██╗████████╗██████╗ ██╗   ██╗██╗  ██╗
+██╔════╝██╔════╝████╗  ██║╚══██╔══╝██╔══██╗╚██╗ ██╔╝╚██╗██╔╝
+███████╗█████╗  ██╔██╗ ██║   ██║   ██████╔╝ ╚████╔╝  ╚███╔╝ 
+╚════██║██╔══╝  ██║╚██╗██║   ██║   ██╔══██╗  ╚██╔╝   ██╔██╗ 
+███████║███████╗██║ ╚████║   ██║   ██║  ██║   ██║   ██╔╝ ██╗
+╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
 ```
 
 Built by **Shivanshu Agarwal** and **Shaaz Aryan Rehman**.
@@ -28,11 +26,11 @@ Built by **Shivanshu Agarwal** and **Shaaz Aryan Rehman**.
 
 ## Download
 
-[![Release installers](https://github.com/shivanshu-agarwal/sentryx/actions/workflows/release.yml/badge.svg)](https://github.com/shivanshu-agarwal/sentryx/actions/workflows/release.yml)
-[![CI](https://github.com/shivanshu-agarwal/sentryx/actions/workflows/ci.yml/badge.svg)](https://github.com/shivanshu-agarwal/sentryx/actions/workflows/ci.yml)
+[![Release installers](https://github.com/shivanshuagrwl/SentryX/actions/workflows/release.yml/badge.svg)](https://github.com/shivanshuagrwl/SentryX/actions/workflows/release.yml)
+[![CI](https://github.com/shivanshuagrwl/SentryX/actions/workflows/ci.yml/badge.svg)](https://github.com/shivanshuagrwl/SentryX/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Grab the installer for your OS from the **[Latest Release](https://github.com/shivanshu-agarwal/sentryx/releases/latest)** — download one file, double-click, done:
+Grab the installer for your OS from the **[Latest Release](https://github.com/shivanshuagrwl/SentryX/releases/latest)** — download one file, double-click, done:
 
 | OS | File | What you'll see |
 |---|---|---|

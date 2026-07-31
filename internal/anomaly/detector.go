@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
 )
 
 // Config controls detection sensitivity. Sane defaults are provided by

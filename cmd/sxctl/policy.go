@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/policy"
+	"github.com/shivanshuagrwl/SentryX/internal/policy"
 )
 
 // policyCmd is the CLI half of policy-as-code: internal/policy.Apply already

@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
 )
 
 // maxEvents bounds the in-memory ring buffer — enough history for a

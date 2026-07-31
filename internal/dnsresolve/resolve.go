@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
 )
 
 // Resolver periodically resolves a configured domain list and reconciles

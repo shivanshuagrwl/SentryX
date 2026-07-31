@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
 )
 
 // Status mirrors pcap_linux.go's Status exactly (same fields, same JSON

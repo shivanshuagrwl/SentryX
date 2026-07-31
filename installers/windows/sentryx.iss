@@ -37,7 +37,7 @@
 #define MyAppName "SENTRYX"
 #define MyAppVersion "1.0"
 #define MyAppPublisher "SENTRYX"
-#define MyAppURL "https://github.com/shivanshu-agarwal/sentryx"
+#define MyAppURL "https://github.com/shivanshuagrwl/SentryX"
 #define MyAppExeName "sentryx-setup.exe"
 
 [Setup]

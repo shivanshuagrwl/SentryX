@@ -30,7 +30,7 @@ import (
 
 	"github.com/cilium/ebpf/ringbuf"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
 )
 
 // pcap file format constants (RFC-less but universally implemented —

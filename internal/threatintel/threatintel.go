@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shivanshu-agarwal/sentryx/internal/firewall"
+	"github.com/shivanshuagrwl/SentryX/internal/firewall"
 )
 
 // FeedURL is abuse.ch's Feodo Tracker "aggressive" blocklist: plaintext,
