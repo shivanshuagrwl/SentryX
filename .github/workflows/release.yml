@@ -77,10 +77,15 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y
       - name: Compile installer
-        shell: bash
+        shell: pwsh
         run: |
-          VER="${GITHUB_REF_NAME#v}"
-          "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" "/DMyAppVersion=$VER" installers/windows/sentryx.iss
+          # pwsh, not bash: Git Bash on Windows runners auto-rewrites any
+          # "/..." argument into a Windows path (so Unix-style paths reach
+          # native .exe files correctly), which also mangles Inno Setup's
+          # /D switch and made ISCC.exe think it had been given two script
+          # filenames. pwsh does no such rewriting.
+          $ver = $env:GITHUB_REF_NAME -replace '^v', ''
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$ver" installers\windows\sentryx.iss
       - uses: actions/upload-artifact@v4
         with:
           name: sentryx-windows-installer
