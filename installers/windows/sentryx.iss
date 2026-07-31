@@ -35,7 +35,13 @@
 ; ---------------------------------------------------------------------
 
 #define MyAppName "SENTRYX"
-#define MyAppVersion "1.0"
+#ifndef MyAppVersion
+  ; Overridden by release.yml via `ISCC.exe /DMyAppVersion=1.0.2 ...`,
+  ; derived from the pushed git tag. Falls back to "1.0" only for a
+  ; manual local compile (double-clicking the .iss in the IDE) where
+  ; nothing passed a version in.
+  #define MyAppVersion "1.0"
+#endif
 #define MyAppPublisher "SENTRYX"
 #define MyAppURL "https://github.com/shivanshuagrwl/SentryX"
 #define MyAppExeName "sentryx-setup.exe"

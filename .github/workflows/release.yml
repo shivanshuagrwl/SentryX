@@ -24,7 +24,10 @@ jobs:
           go-version: "1.22"
       - name: Resolve dependencies (go.sum isn't committed yet)
         run: go mod tidy
-      - run: make dist
+      - name: Derive version from the pushed tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+      - run: make dist VERSION=${{ steps.ver.outputs.version }}
       - uses: actions/upload-artifact@v4
         with:
           name: dist
@@ -40,11 +43,11 @@ jobs:
           name: dist
           path: dist/
       - run: chmod +x dist/* installers/linux/build_deb.sh
-      - run: ./installers/linux/build_deb.sh amd64
+      - run: VERSION=${{ github.ref_name }} ./installers/linux/build_deb.sh amd64
       - uses: actions/upload-artifact@v4
         with:
           name: sentryx-linux-installer
-          path: sentryx_1.0_amd64.deb
+          path: sentryx_*_amd64.deb
 
   build-macos-pkg:
     needs: build-dist
@@ -56,7 +59,7 @@ jobs:
           name: dist
           path: dist/
       - run: chmod +x dist/* installers/macos/build_pkg.sh
-      - run: ./installers/macos/build_pkg.sh arm64
+      - run: VERSION=${{ github.ref_name }} ./installers/macos/build_pkg.sh arm64
       - uses: actions/upload-artifact@v4
         with:
           name: sentryx-macos-installer
@@ -74,7 +77,10 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y
       - name: Compile installer
-        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installers\windows\sentryx.iss'
+        shell: bash
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" "/DMyAppVersion=$VER" installers/windows/sentryx.iss
       - uses: actions/upload-artifact@v4
         with:
           name: sentryx-windows-installer
@@ -95,7 +101,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/sentryx-linux-installer/sentryx_1.0_amd64.deb
+            artifacts/sentryx-linux-installer/sentryx_*_amd64.deb
             artifacts/sentryx-macos-installer/SENTRYX-arm64.pkg
             artifacts/sentryx-windows-installer/SentryxSetup.exe
           generate_release_notes: true

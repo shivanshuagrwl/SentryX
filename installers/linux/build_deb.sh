@@ -12,10 +12,15 @@
 set -euo pipefail
 
 ARCH="${1:-amd64}"
+# VERSION is the git tag (e.g. "v1.0.2") passed in by release.yml; Debian's
+# Version: field convention omits the leading "v", so strip it. Falls back
+# to "1.0" for a manual local run with no VERSION set.
+RAW_VERSION="${VERSION:-1.0}"
+DEB_VERSION="${RAW_VERSION#v}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DIST="$REPO_ROOT/dist"
 WORK="$(mktemp -d)"
-PKG="$WORK/sentryx_1.0_${ARCH}"
+PKG="$WORK/sentryx_${DEB_VERSION}_${ARCH}"
 
 mkdir -p "$PKG/DEBIAN" "$PKG/usr/local/bin" "$PKG/lib/systemd/system" \
          "$PKG/usr/share/applications" "$PKG/usr/share/pixmaps"
@@ -28,7 +33,7 @@ chmod 755 "$PKG"/usr/local/bin/*
 
 cat > "$PKG/DEBIAN/control" <<EOF
 Package: sentryx
-Version: 1.0
+Version: $DEB_VERSION
 Section: net
 Priority: optional
 Architecture: $ARCH
@@ -93,9 +98,9 @@ exit 0
 EOF
 chmod 755 "$PKG/DEBIAN/postinst"
 
-dpkg-deb --build --root-owner-group "$PKG" "$REPO_ROOT/sentryx_1.0_${ARCH}.deb"
+dpkg-deb --build --root-owner-group "$PKG" "$REPO_ROOT/sentryx_${DEB_VERSION}_${ARCH}.deb"
 
-echo "==> built $REPO_ROOT/sentryx_1.0_${ARCH}.deb"
-echo "    install with: sudo apt install ./sentryx_1.0_${ARCH}.deb"
+echo "==> built $REPO_ROOT/sentryx_${DEB_VERSION}_${ARCH}.deb"
+echo "    install with: sudo apt install ./sentryx_${DEB_VERSION}_${ARCH}.deb"
 echo "    then open 'SENTRYX Setup' from the Applications menu (pkexec will prompt for your password)"
 rm -rf "$WORK"

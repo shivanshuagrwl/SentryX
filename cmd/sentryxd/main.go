@@ -30,6 +30,14 @@ import (
 	"github.com/shivanshuagrwl/SentryX/internal/topology"
 )
 
+// version is overridden via -ldflags "-X main.version=..." by `make dist` /
+// the release workflow. Without this var the ldflags -X target doesn't
+// exist and the linker silently drops the flag, which is exactly how
+// sentryxd ended up unable to report its own version — see -version below
+// and sentryx-setup's resolveBinaries, which relies on this to decide
+// whether an already-installed daemon needs upgrading.
+var version = "dev"
+
 const banner = `
  __      __   ______   ______   _______   __     __   ______   __       __
 /  \    /  | /      \ /      \ /       \ /  |   /  | /      \ /  |     /  |
@@ -82,8 +90,21 @@ func run(ctx context.Context) {
 		threatShareName  = flag.String("threat-share-name", "", "this daemon's name as reported to peers (defaults to -iface); purely informational")
 
 		policyPath = flag.String("policy", "", "path to a policy.yaml to apply on boot (policy-as-code; see `sxctl policy init`)")
+
+		showVersion = flag.Bool("version", false, "print sentryxd's version and exit")
 	)
 	flag.Parse()
+
+	// Handled before anything else touches an interface, a map, or a
+	// port — `sentryxd -version` needs to work unprivileged, offline,
+	// and even against a broken install, since sentryx-setup's upgrade
+	// check (see resolveBinaries in cmd/sentryx-setup/fetch.go) shells
+	// out to exactly this to decide whether an already-installed daemon
+	// is stale.
+	if *showVersion {
+		fmt.Println(version)
+		return
+	}
 
 	fmt.Fprint(os.Stderr, banner)
 

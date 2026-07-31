@@ -13,6 +13,13 @@
 set -euo pipefail
 
 ARCH="${1:-arm64}"   # pass amd64 for Intel Macs
+# VERSION is the git tag (e.g. "v1.0.2") passed in by release.yml; macOS
+# CFBundleVersion/pkgbuild --version both expect a bare numeric-ish string,
+# so strip the leading "v". Falls back to "1.0" for a manual local run
+# where VERSION isn't set at all (checked first so `set -u` doesn't choke
+# on an unset var before the fallback kicks in).
+RAW_VERSION="${VERSION:-1.0}"
+PKG_VERSION="${RAW_VERSION#v}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DIST="$REPO_ROOT/dist"
 WORK="$(mktemp -d)"
@@ -42,14 +49,14 @@ chmod +x "$DASH_APP/Contents/MacOS/sentryx-dashboard"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 iconutil -c icns "$SCRIPT_DIR/AppIcon.iconset" -o "$DASH_APP/Contents/Resources/AppIcon.icns"
 
-cat > "$DASH_APP/Contents/Info.plist" <<'EOF'
+cat > "$DASH_APP/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>CFBundleName</key><string>SENTRYX Dashboard</string>
   <key>CFBundleIdentifier</key><string>com.sentryx.dashboard</string>
-  <key>CFBundleVersion</key><string>1.0</string>
+  <key>CFBundleVersion</key><string>$PKG_VERSION</string>
   <key>CFBundleExecutable</key><string>sentryx-dashboard</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
@@ -89,7 +96,7 @@ pkgbuild \
   --root "$WORK/root" \
   --scripts "$SCRIPTS_DIR" \
   --identifier com.sentryx.installer \
-  --version "1.0" \
+  --version "$PKG_VERSION" \
   --install-location "/" \
   "$REPO_ROOT/SENTRYX-$ARCH.pkg"
 

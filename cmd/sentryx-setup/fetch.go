@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -29,19 +30,76 @@ import (
 func resolveBinaries(releaseBase string) (daemonPath, cliPath, note string, err error) {
 	daemonName, cliName := binaryNames()
 
+	// "Bundled next to sentryx-setup" is always trusted without a version
+	// check: it's exactly the pair the installer package (the .exe/.pkg/
+	// .deb built from this same tag) shipped sentryx-setup with, so it's
+	// current by construction — re-downloading it would just be a wasted
+	// round trip to fetch the file already sitting on disk.
 	if d, c, ok := findBeside(daemonName, cliName); ok {
 		return d, c, "Found sentryxd/sxctl bundled next to sentryx-setup.", nil
 	}
 
+	// A copy already on PATH is a different story — it could be a
+	// previous install from months ago. Blindly reusing it is exactly
+	// how re-running the wizard used to leave an operator on an old
+	// version with no indication anything was stale. Check its
+	// reported version against this wizard's own build version before
+	// trusting it.
 	if d, c, ok := findOnPath(daemonName, cliName); ok {
-		return d, c, "Found an existing sentryxd/sxctl already on PATH.", nil
+		if isCurrent(d, c) {
+			return d, c, "Found an existing sentryxd/sxctl on PATH, already up to date.", nil
+		}
+		note = fmt.Sprintf("Found sentryxd/sxctl on PATH, but at an older version than this installer (%s) — fetching the current release instead. ", version)
 	}
 
-	d, c, err := downloadRelease(releaseBase, daemonName, cliName)
-	if err != nil {
-		return "", "", "", fmt.Errorf("not bundled locally, not on PATH, and download failed: %w", err)
+	d, c, dlErr := downloadRelease(releaseBase, daemonName, cliName)
+	if dlErr != nil {
+		if daemonPath, cliPath, ok := findOnPath(daemonName, cliName); ok {
+			// Couldn't confirm/fetch the latest release (offline, proxy,
+			// GitHub unreachable) — fall back to the stale-but-working
+			// PATH copy rather than leaving the operator with nothing,
+			// but say so plainly instead of pretending it's current.
+			return daemonPath, cliPath, note + fmt.Sprintf("Could not check for a newer release (%v); continuing with the existing install.", dlErr), nil
+		}
+		return "", "", "", fmt.Errorf("not bundled locally, not on PATH, and download failed: %w", dlErr)
 	}
-	return d, c, "Downloaded sentryxd/sxctl from " + releaseBase + ".", nil
+	return d, c, note + "Downloaded the latest sentryxd/sxctl from " + releaseBase + ".", nil
+}
+
+// isCurrent shells out to `sentryxd -version` / `sxctl version` and
+// compares the result against sentryx-setup's own build version. Any
+// failure to determine the installed version (binary predates the
+// -version/version flag, unreadable output, etc.) is treated as "not
+// current" — erring toward re-fetching a known-good release rather than
+// silently trusting a binary sentryx-setup can't identify.
+func isCurrent(daemonPath, cliPath string) bool {
+	if version == "" || version == "dev" {
+		// sentryx-setup itself wasn't built with a real version (a local
+		// `go run`/`make all` build) — there's nothing meaningful to
+		// compare against, so don't churn re-downloading on every run.
+		return true
+	}
+	dv, err := exec.Command(daemonPath, "-version").Output()
+	if err != nil {
+		return false
+	}
+	cv, err := exec.Command(cliPath, "version").Output()
+	if err != nil {
+		return false
+	}
+	return normalizeVersion(dv) == normalizeVersion(version) && normalizeVersion(cv) == normalizeVersion(version)
+}
+
+func normalizeVersion(v any) string {
+	var s string
+	switch t := v.(type) {
+	case []byte:
+		s = string(t)
+	case string:
+		s = t
+	}
+	s = strings.TrimSpace(s)
+	return strings.TrimPrefix(s, "v")
 }
 
 // binaryNames returns the Makefile dist-target filenames for this

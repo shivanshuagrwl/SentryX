@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Forces Windows to UAC-prompt for elevation every time sentryx-setup.exe
+  is launched, however it's launched — double-click, Start Menu shortcut,
+  or re-run later to upgrade. Without this, the process inherits whatever
+  token launched it; if that's a standard user (e.g. the Start Menu
+  shortcut, or a plain double-click after install), install_windows.go's
+  `sc.exe create` fails with "Access is denied" (exit status 5), because
+  its child process has no admin rights to hand off.
+
+  See cmd/sentryx-setup/rsrc_windows_amd64.syso, generated from this file
+  via:
+      go install github.com/akavel/rsrc@latest
+      rsrc -manifest cmd/sentryx-setup/sentryx-setup.manifest \
+           -o cmd/sentryx-setup/rsrc_windows_amd64.syso
+  `go build` for GOOS=windows automatically links any .syso sitting next
+  to main.go, so this needs no Makefile changes to take effect.
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity version="1.0.0.0" processorArchitecture="amd64" name="SENTRYX.Setup" type="win32"/>
+  <description>SENTRYX Setup Wizard</description>
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <!--
+          sentryxd needs to register/replace a Windows Service (sc.exe
+          create/delete/start) and write to %ProgramData%\SENTRYX, both
+          of which require admin rights — so the wizard that does that
+          work must itself already be elevated, every time it runs.
+        -->
+        <requestedExecutionLevel level="requireAdministrator" uiAccess="false"/>
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 8.1 / 10 / 11 -->
+      <supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/>
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/>
+    </application>
+  </compatibility>
+</assembly>

@@ -74,6 +74,12 @@ dist:
 	GOOS=darwin  GOARCH=arm64 go build -ldflags "-X main.version=$(VERSION)" -o $(DIST)/sxctl-darwin-arm64        ./cmd/sxctl
 	GOOS=linux   GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $(DIST)/sentryx-setup-linux-amd64       ./cmd/sentryx-setup
 	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $(DIST)/sentryx-setup-windows-amd64.exe ./cmd/sentryx-setup
+	# ^ picks up cmd/sentryx-setup/rsrc_windows_amd64.syso automatically (no
+	#   extra flag needed), embedding the requireAdministrator manifest so
+	#   this always UAC-prompts instead of failing later with "sc.exe
+	#   create failed ... Access is denied". Regenerate that .syso with
+	#   `rsrc -manifest cmd/sentryx-setup/sentryx-setup.manifest -o cmd/sentryx-setup/rsrc_windows_amd64.syso`
+	#   if sentryx-setup.manifest ever changes.
 	GOOS=darwin  GOARCH=arm64 go build -ldflags "-X main.version=$(VERSION)" -o $(DIST)/sentryx-setup-darwin-arm64     ./cmd/sentryx-setup
 	GOOS=linux   GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $(DIST)/sentryx-dashboard-linux-amd64       ./cmd/sentryx-dashboard
 	GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $(DIST)/sentryx-dashboard-windows-amd64.exe ./cmd/sentryx-dashboard

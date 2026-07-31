@@ -21,6 +21,26 @@ var (
 	jsonOutput bool
 )
 
+// version is overridden via -ldflags "-X main.version=..." by `make dist` /
+// the release workflow — same pattern as cmd/sentryxd. sentryx-setup's
+// resolveBinaries shells out to `sxctl version` when it finds a copy
+// already on PATH, so it can tell a current install from a stale one
+// instead of silently reusing whatever happens to be there.
+var version = "dev"
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print sxctl's version",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		fmt.Println(version)
+		return nil
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "sxctl",
 	Short: "SENTRYX control CLI — manage a running sentryxd instance",
