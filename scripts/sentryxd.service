@@ -1,0 +1,34 @@
+[Unit]
+Description=SENTRYX — kernel-speed XDP packet interdiction daemon
+Documentation=https://github.com/shivanshu-agarwal/sentryx
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=__ENV_FILE__
+ExecStart=/usr/local/bin/sentryxd \
+  -iface __IFACE__ \
+  -obj __OBJ_PATH__ \
+  -data __DATA_DIR__ \
+  -policy __CONF_DIR__/policy.yaml \
+  -addr :9090 \
+  __TLS_ARGS__
+
+# XDP attach + eBPF map creation both need CAP_NET_ADMIN / CAP_BPF (or root).
+# Running as a dedicated user with just these capabilities is preferable to
+# full root in production; drop User=/Group= below once that's set up.
+AmbientCapabilities=CAP_NET_ADMIN CAP_BPF CAP_SYS_ADMIN
+NoNewPrivileges=true
+
+Restart=on-failure
+RestartSec=2s
+
+# The XDP program is unloaded automatically on stop/crash (see fw.Close() in
+# internal/firewall), so the interface returns to unfiltered operation
+# immediately if the daemon goes down for any reason — a firewall that fails
+# open, not closed, if you didn't mean for it to stop.
+TimeoutStopSec=10s
+
+[Install]
+WantedBy=multi-user.target

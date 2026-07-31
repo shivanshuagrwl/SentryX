@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENTRYX — Setup</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="theme-color" content="#000000">
+<style>
+  :root{
+    --bg:#000000;
+    --surface:#0a0a0a;
+    --surface-2:#121212;
+    --surface-3:#1a1a1a;
+    --border:rgba(255,255,255,0.08);
+    --border-soft:rgba(255,255,255,0.04);
+    --text:#f5f5f7;
+    --text-dim:#8e8e93;
+    --text-faint:#4c4c4f;
+    --green:#7a9a82;
+    --green-dim:rgba(122,154,130,0.12);
+    --red:#b5645a;
+    --red-dim:rgba(181,100,90,0.12);
+    --amber:#bfa06a;
+    --amber-dim:rgba(191,160,106,0.12);
+    --accent:#8e8e93;
+    --accent-dim:rgba(255,255,255,0.06);
+    --border-card:rgba(255,255,255,0.09);
+    --radius-lg:22px;
+    --radius-md:14px;
+    --radius-sm:9px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --font-display:-apple-system,'SF Pro Display','Helvetica Neue',Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,'SF Mono',Menlo,'Helvetica Neue',monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-display);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    position:relative;
+    overflow-x:hidden;
+  }
+  ::selection{background:rgba(255,255,255,0.14);color:#fff;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  :focus-visible{outline:2px solid rgba(255,255,255,0.35);outline-offset:2px;border-radius:6px;}
+
+  /* faint ambient glow, identical spirit to the dashboard's dark canvas */
+  .ambient{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(600px 400px at 18% -10%, rgba(122,154,130,0.05), transparent 60%),
+      radial-gradient(700px 500px at 100% 10%, rgba(191,160,106,0.04), transparent 60%);
+  }
+
+  .shell{
+    position:relative; z-index:1;
+    width:100%; max-width:560px;
+    padding:56px 24px 64px;
+    display:flex; flex-direction:column;
+    min-height:100vh;
+  }
+
+  .brand{
+    display:flex; align-items:center; gap:11px;
+    margin-bottom:40px;
+  }
+  .brand-mark{
+    width:34px;height:34px;border-radius:10px;
+    background:var(--surface-3); border:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .brand-mark::after{
+    content:''; position:absolute; inset:0; border-radius:10px;
+    background:linear-gradient(160deg, rgba(255,255,255,0.06), transparent 60%);
+  }
+  .brand-mark svg{width:17px;height:17px;position:relative;z-index:1;}
+  .brand-mark img{width:19px;height:19px;object-fit:contain;position:relative;z-index:1;}
+  .brand-name{font-size:15px; font-weight:650; letter-spacing:0.02em;}
+  .brand-tag{font-size:10.5px; color:var(--text-faint); letter-spacing:0.14em; font-weight:600;}
+
+  /* ---------------- Step rail ---------------- */
+  .rail{
+    display:flex; align-items:center; gap:6px;
+    margin-bottom:36px;
+  }
+  .rail-step{
+    flex:1; height:3px; border-radius:2px;
+    background:var(--surface-3);
+    overflow:hidden; position:relative;
+  }
+  .rail-step .fill{
+    position:absolute; inset:0; width:0%;
+    background:var(--text);
+    transition:width .5s var(--ease);
+  }
+  .rail-step.done .fill{width:100%; background:var(--green);}
+  .rail-step.active .fill{width:100%;}
+
+  /* ---------------- Card ---------------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border-card);
+    border-radius:var(--radius-lg);
+    padding:36px 32px;
+    flex:1;
+    display:flex; flex-direction:column;
+    animation:cardIn .45s var(--ease);
+  }
+  @keyframes cardIn{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .eyebrow{
+    font-size:11px; font-weight:650; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--text-faint); margin-bottom:10px;
+  }
+  h1{font-size:24px; font-weight:650; letter-spacing:-0.01em; margin:0 0 10px;}
+  .lede{font-size:14.5px; line-height:1.55; color:var(--text-dim); margin:0 0 28px;}
+
+  .step-body{flex:1; display:flex; flex-direction:column; gap:14px;}
+
+  /* ---------------- Welcome step details ---------------- */
+  .detail-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    margin-top:4px;
+  }
+  .detail-cell{
+    background:var(--surface-2); border:1px solid var(--border-soft);
+    border-radius:var(--radius-md); padding:14px 16px;
+  }
+  .detail-label{font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; font-weight:600;}
+  .detail-value{font-family:var(--font-mono); font-size:13.5px; color:var(--text);}
+
+  /* ---------------- Option list (interfaces / mode) ---------------- */
+  .option{
+    display:flex; align-items:center; gap:14px;
+    padding:14px 16px;
+    background:var(--surface-2);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-md);
+    cursor:pointer;
+    transition:border-color .18s var(--ease), background .18s var(--ease);
+  }
+  .option:hover{border-color:var(--border-card); background:var(--surface-3);}
+  .option.selected{
+    border-color:rgba(122,154,130,0.5);
+    background:var(--green-dim);
+  }
+  .option-radio{
+    width:18px;height:18px;border-radius:50%;
+    border:1.5px solid var(--text-faint);
+    flex-shrink:0; position:relative;
+    transition:border-color .18s var(--ease);
+  }
+  .option.selected .option-radio{border-color:var(--green);}
+  .option.selected .option-radio::after{
+    content:''; position:absolute; inset:4px; border-radius:50%;
+    background:var(--green);
+  }
+  .option-main{flex:1; min-width:0;}
+  .option-title{font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px;}
+  .option-sub{font-size:12.5px; color:var(--text-dim); margin-top:2px; font-family:var(--font-mono);}
+  .tag{
+    font-size:10px; font-weight:650; padding:2px 7px; border-radius:6px;
+    text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .tag-warn{background:var(--amber-dim); color:var(--amber);}
+  .tag-good{background:var(--green-dim); color:var(--green);}
+  .tag-dim{background:var(--accent-dim); color:var(--text-dim);}
+
+  .empty-hint{
+    padding:22px 16px; text-align:center; color:var(--text-faint); font-size:13px;
+    border:1px dashed var(--border); border-radius:var(--radius-md);
+  }
+
+  /* ---------------- Buttons ---------------- */
+  .actions{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:28px; gap:12px;
+  }
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    font-family:inherit; font-size:13.5px; font-weight:600;
+    padding:11px 20px; border-radius:999px;
+    display:inline-flex; align-items:center; gap:8px;
+    transition:transform .15s var(--ease), background .15s var(--ease), opacity .15s var(--ease);
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn:disabled{opacity:0.4; cursor:not-allowed; pointer-events:none;}
+  .btn-primary{background:var(--text); color:#000;}
+  .btn-primary:hover{background:#fff;}
+  .btn-ghost{background:transparent; color:var(--text-dim); border:1px solid var(--border);}
+  .btn-ghost:hover{color:var(--text); border-color:var(--border-card);}
+  .btn svg{width:14px;height:14px;}
+
+  /* ---------------- Install progress ---------------- */
+  .progress-list{display:flex; flex-direction:column; gap:2px; margin-top:6px;}
+  .progress-row{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 4px; font-size:13.5px; color:var(--text-faint);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .progress-row:last-child{border-bottom:none;}
+  .progress-row.active{color:var(--text);}
+  .progress-row.done{color:var(--text-dim);}
+  .progress-dot{
+    width:8px;height:8px;border-radius:50%; flex-shrink:0;
+    background:var(--surface-3); border:1px solid var(--border);
+    position:relative;
+  }
+  .progress-row.active .progress-dot{
+    background:var(--text); border-color:var(--text);
+    animation:pulseDot 1.1s ease-in-out infinite;
+  }
+  .progress-row.done .progress-dot{background:var(--green); border-color:var(--green);}
+  .progress-row.error .progress-dot{background:var(--red); border-color:var(--red);}
+  @keyframes pulseDot{0%,100%{opacity:1;}50%{opacity:0.35;}}
+
+  /* ---------------- Done screen ---------------- */
+  .done-icon{
+    width:56px;height:56px;border-radius:16px;
+    background:var(--green-dim); border:1px solid rgba(122,154,130,0.35);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:20px;
+  }
+  .done-icon svg{width:26px;height:26px;color:var(--green);}
+  .creds{
+    background:var(--surface-2); border:1px solid var(--border-soft);
+    border-radius:var(--radius-md); padding:16px 18px; margin-top:6px;
+  }
+  .creds-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:7px 0;}
+  .creds-row + .creds-row{border-top:1px solid var(--border-soft);}
+  .creds-label{font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em;}
+  .creds-value{font-family:var(--font-mono); font-size:12.5px; color:var(--text); word-break:break-all; text-align:right;}
+  .copy-btn{
+    background:none; border:1px solid var(--border); color:var(--text-dim);
+    border-radius:7px; padding:4px 9px; font-size:11px; cursor:pointer; flex-shrink:0;
+  }
+  .copy-btn:hover{color:var(--text); border-color:var(--border-card);}
+
+  .note-box{
+    margin-top:16px; padding:13px 15px; border-radius:var(--radius-sm);
+    background:var(--amber-dim); border:1px solid rgba(191,160,106,0.3);
+    font-size:12.5px; line-height:1.55; color:var(--amber);
+    white-space:pre-wrap; font-family:var(--font-mono);
+  }
+  .note-box.ok{background:var(--green-dim); border-color:rgba(122,154,130,0.3); color:var(--green);}
+
+  .footer-hint{
+    text-align:center; margin-top:20px; font-size:11.5px; color:var(--text-faint);
+  }
+
+  .err-box{
+    margin-top:14px; padding:13px 15px; border-radius:var(--radius-sm);
+    background:var(--red-dim); border:1px solid rgba(181,100,90,0.3);
+    font-size:12.5px; color:var(--red); line-height:1.5;
+  }
+
+  @media (max-width:520px){
+    .detail-grid{grid-template-columns:1fr;}
+    .card{padding:28px 20px;}
+  }
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<div class="shell">
+  <div class="brand">
+    <div class="brand-mark">
+      <img src="brand-mark.png" alt="SENTRYX">
+    </div>
+    <div>
+      <div class="brand-name">SENTRYX</div>
+      <div class="brand-tag">SETUP</div>
+    </div>
+  </div>
+
+  <div class="rail" id="rail"></div>
+
+  <div class="card" id="card"><!-- step content injected here --></div>
+
+  <div class="footer-hint" id="footerHint">This installer runs entirely on your machine — nothing here leaves localhost.</div>
+</div>
+
+<script>
+(function(){
+  const STEPS = ['Welcome','Interface','Mode','Install','Done'];
+  let step = 0;
+  let info = null;
+  let interfaces = [];
+  let selectedIface = null;
+  let selectedMode = 'strict';
+  let installResult = null;
+
+  const railEl = document.getElementById('rail');
+  const cardEl = document.getElementById('card');
+  const footerHint = document.getElementById('footerHint');
+
+  function renderRail(){
+    railEl.innerHTML = STEPS.map((_, i) => {
+      const cls = i < step ? 'done' : (i === step ? 'active' : '');
+      return `<div class="rail-step ${cls}"><div class="fill"></div></div>`;
+    }).join('');
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function api(path, opts){
+    const res = await fetch(path, opts);
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error || ('request failed: ' + res.status));
+    return data;
+  }
+
+  /* ---------------- Step 0: Welcome ---------------- */
+  async function renderWelcome(){
+    cardEl.innerHTML = `
+      <div class="eyebrow">Step 1 of 5</div>
+      <h1>Welcome to SENTRYX</h1>
+      <p class="lede">This wizard installs the SENTRYX control daemon as a background service on this machine — no terminal needed. It takes about a minute.</p>
+      <div class="step-body">
+        <div class="detail-grid" id="detailGrid">
+          <div class="detail-cell"><div class="detail-label">Detecting…</div><div class="detail-value">—</div></div>
+        </div>
+      </div>
+      <div class="actions">
+        <span></span>
+        <button class="btn btn-primary" id="nextBtn" disabled>Continue
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>`;
+    try{
+      info = await api('/api/info');
+      document.getElementById('detailGrid').innerHTML = `
+        <div class="detail-cell"><div class="detail-label">Platform</div><div class="detail-value">${esc(info.os)}/${esc(info.arch)}</div></div>
+        <div class="detail-cell"><div class="detail-label">Machine</div><div class="detail-value">${esc(info.hostname)}</div></div>
+        <div class="detail-cell"><div class="detail-label">Service manager</div><div class="detail-value">${esc(info.service_kind)}</div></div>
+        <div class="detail-cell"><div class="detail-label">Config directory</div><div class="detail-value">${esc(info.conf_dir)}</div></div>`;
+      document.getElementById('nextBtn').disabled = false;
+    }catch(e){
+      document.getElementById('detailGrid').innerHTML = `<div class="err-box">Couldn't reach the setup server: ${esc(e.message)}</div>`;
+    }
+    document.getElementById('nextBtn').addEventListener('click', () => goTo(1));
+  }
+
+  /* ---------------- Step 1: Interface ---------------- */
+  async function renderInterface(){
+    cardEl.innerHTML = `
+      <div class="eyebrow">Step 2 of 5</div>
+      <h1>Choose an interface</h1>
+      <p class="lede">SENTRYX attaches to one network interface and filters traffic on it directly. Pick the one facing the traffic you want to protect.</p>
+      <div class="step-body" id="ifaceList">
+        <div class="empty-hint">Scanning network interfaces…</div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" id="backBtn">Back</button>
+        <button class="btn btn-primary" id="nextBtn" disabled>Continue
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>`;
+    document.getElementById('backBtn').addEventListener('click', () => goTo(0));
+    document.getElementById('nextBtn').addEventListener('click', () => { if(selectedIface) goTo(2); });
+
+    try{
+      interfaces = await api('/api/interfaces');
+    }catch(e){
+      document.getElementById('ifaceList').innerHTML = `<div class="err-box">Couldn't list interfaces: ${esc(e.message)}</div>`;
+      return;
+    }
+
+    const usable = interfaces.filter(i => !i.loopback);
+    const list = usable.length ? usable : interfaces;
+    if(!list.length){
+      document.getElementById('ifaceList').innerHTML = `<div class="empty-hint">No interfaces found on this machine.</div>`;
+      return;
+    }
+    if(!selectedIface){
+      const firstGood = list.find(i => i.up && !i.warn) || list[0];
+      selectedIface = firstGood.name;
+    }
+    renderIfaceOptions(list);
+  }
+
+  function renderIfaceOptions(list){
+    document.getElementById('ifaceList').innerHTML = list.map(i => `
+      <div class="option ${i.name===selectedIface ? 'selected':''}" data-iface="${esc(i.name)}">
+        <div class="option-radio"></div>
+        <div class="option-main">
+          <div class="option-title">${esc(i.name)} ${i.up ? '<span class="tag tag-good">up</span>' : '<span class="tag tag-warn">down</span>'}</div>
+          <div class="option-sub">${esc(i.note || '')}</div>
+        </div>
+      </div>`).join('');
+    document.querySelectorAll('#ifaceList .option').forEach(el => {
+      el.addEventListener('click', () => {
+        selectedIface = el.dataset.iface;
+        document.querySelectorAll('#ifaceList .option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('nextBtn').disabled = false;
+      });
+    });
+    document.getElementById('nextBtn').disabled = !selectedIface;
+  }
+
+  /* ---------------- Step 2: Mode ---------------- */
+  function renderMode(){
+    const modes = [
+      {id:'strict', title:'Strict', sub:'Detected anomalies are blocked automatically. Recommended once you trust the baseline.', tag:'Recommended', tagClass:'tag-good'},
+      {id:'learning', title:'Learning', sub:'Anomalies are detected and logged only — nothing gets auto-blocked yet. Good for a first run.', tag:'Safer first run', tagClass:'tag-dim'},
+    ];
+    cardEl.innerHTML = `
+      <div class="eyebrow">Step 3 of 5</div>
+      <h1>Choose a mode</h1>
+      <p class="lede">This controls the behavioral anomaly detector. You can change it any time afterward with <code style="font-family:var(--font-mono)">-anomaly-dry-run</code> or by editing the service config.</p>
+      <div class="step-body">
+        ${modes.map(m => `
+          <div class="option ${m.id===selectedMode ? 'selected':''}" data-mode="${m.id}">
+            <div class="option-radio"></div>
+            <div class="option-main">
+              <div class="option-title">${m.title} <span class="tag ${m.tagClass}">${m.tag}</span></div>
+              <div class="option-sub" style="font-family:var(--font-display);">${m.sub}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" id="backBtn">Back</button>
+        <button class="btn btn-primary" id="nextBtn">Continue
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>`;
+    document.querySelectorAll('.option[data-mode]').forEach(el => {
+      el.addEventListener('click', () => {
+        selectedMode = el.dataset.mode;
+        document.querySelectorAll('.option[data-mode]').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+      });
+    });
+    document.getElementById('backBtn').addEventListener('click', () => goTo(1));
+    document.getElementById('nextBtn').addEventListener('click', () => goTo(3));
+  }
+
+  /* ---------------- Step 3: Install ---------------- */
+  async function renderInstall(){
+    const rows = [
+      {id:'resolve', label:'Locating sentryxd + sxctl'},
+      {id:'config', label:'Writing policy.yaml + credentials'},
+      {id:'service', label:'Installing ' + (info ? info.service_kind : 'service')},
+    ];
+    cardEl.innerHTML = `
+      <div class="eyebrow">Step 4 of 5</div>
+      <h1>Installing SENTRYX</h1>
+      <p class="lede">Setting up <b style="color:var(--text)">${esc(selectedIface)}</b> in <b style="color:var(--text)">${esc(selectedMode)}</b> mode.</p>
+      <div class="step-body">
+        <div class="progress-list" id="progressList">
+          ${rows.map(r => `<div class="progress-row" id="row-${r.id}"><div class="progress-dot"></div><span>${r.label}</span></div>`).join('')}
+        </div>
+        <div id="installError"></div>
+      </div>
+      <div class="actions"><span></span><span></span></div>`;
+
+    const setRow = (id, cls) => {
+      const el = document.getElementById('row-'+id);
+      if(el){ el.className = 'progress-row ' + cls; }
+    };
+
+    setRow('resolve', 'active');
+    try{
+      // The actual install call does resolve+config+service server-side
+      // as one atomic step; we animate the three stages client-side for
+      // legibility since a GUI wizard with a silent multi-second pause
+      // reads as broken, not "working".
+      await sleep(300);
+      setRow('resolve', 'done'); setRow('config', 'active');
+      await sleep(300);
+      setRow('config', 'done'); setRow('service', 'active');
+
+      const resp = await api('/api/install', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({iface: selectedIface, mode: selectedMode})
+      });
+      setRow('service', 'done');
+      installResult = resp;
+      await sleep(400);
+      goTo(4);
+    }catch(e){
+      setRow('service', 'error');
+      document.getElementById('installError').innerHTML = `<div class="err-box">${esc(e.message)}</div>
+        <div class="actions"><button class="btn btn-ghost" id="backBtn">Back</button><button class="btn btn-primary" id="retryBtn">Retry</button></div>`;
+      document.getElementById('backBtn').addEventListener('click', () => goTo(2));
+      document.getElementById('retryBtn').addEventListener('click', () => goTo(3));
+    }
+  }
+  function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  /* ---------------- Step 4: Done ---------------- */
+  function renderDone(){
+    const r = installResult ? installResult.result : null;
+    const ok = r && r.service_installed;
+    const dashboardUrl = r ? r.dashboard_url : ('http://localhost' + (info ? info.daemon_addr : ':9090'));
+
+    cardEl.innerHTML = `
+      <div class="eyebrow">Step 5 of 5</div>
+      <div class="done-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h1>${ok ? "You're all set" : 'Almost there'}</h1>
+      <p class="lede">${ok ? 'SENTRYX is installed and running on this machine.' : 'SENTRYX files were written, but the service needs one manual step — see below.'}</p>
+      <div class="step-body">
+        <div class="creds">
+          <div class="creds-row">
+            <span class="creds-label">Dashboard</span>
+            <span class="creds-value">${esc(dashboardUrl)}</span>
+          </div>
+          <div class="creds-row">
+            <span class="creds-label">API token</span>
+            <span class="creds-value" id="tokenValue">${esc(installResult ? installResult.token : '')}</span>
+            <button class="copy-btn" id="copyToken">Copy</button>
+          </div>
+          <div class="creds-row">
+            <span class="creds-label">Config</span>
+            <span class="creds-value">${esc(installResult ? installResult.conf_dir : '')}</span>
+          </div>
+        </div>
+        <div class="note-box ${ok ? 'ok' : ''}">${esc(r ? r.detail : '')}</div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" id="closeBtn">Close</button>
+        <button class="btn btn-primary" id="openBtn">Open dashboard
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 17L17 7M9 7h8v8"/></svg>
+        </button>
+      </div>`;
+    document.getElementById('copyToken').addEventListener('click', () => {
+      navigator.clipboard.writeText(installResult.token).then(() => {
+        const b = document.getElementById('copyToken');
+        b.textContent = 'Copied'; setTimeout(()=>b.textContent='Copy', 1400);
+      });
+    });
+    document.getElementById('openBtn').addEventListener('click', () => window.open(dashboardUrl, '_blank'));
+    document.getElementById('closeBtn').addEventListener('click', () => {
+      cardEl.innerHTML = `<div style="margin:auto;text-align:center;color:var(--text-dim);font-size:13.5px;">You can close this tab now.</div>`;
+    });
+    footerHint.textContent = 'Setup complete — this local server can be shut down any time now.';
+  }
+
+  function goTo(n){
+    step = n;
+    renderRail();
+    if(n===0) renderWelcome();
+    else if(n===1) renderInterface();
+    else if(n===2) renderMode();
+    else if(n===3) renderInstall();
+    else renderDone();
+  }
+
+  goTo(0);
+})();
+</script>
+</body>
+</html>

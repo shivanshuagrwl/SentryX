@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENTRYX — Control Room</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="theme-color" content="#000000">
+<style>
+  :root{
+    --bg:#000000;
+    --surface:#0a0a0a;
+    --surface-2:#121212;
+    --surface-3:#1a1a1a;
+    --border:rgba(255,255,255,0.08);
+    --border-soft:rgba(255,255,255,0.04);
+    --text:#f5f5f7;
+    --text-dim:#8e8e93;
+    --text-faint:#4c4c4f;
+    --green:#7a9a82;
+    --green-dim:rgba(122,154,130,0.12);
+    --red:#b5645a;
+    --red-dim:rgba(181,100,90,0.12);
+    --amber:#bfa06a;
+    --amber-dim:rgba(191,160,106,0.12);
+    --accent:#8e8e93;
+    --accent-dim:rgba(255,255,255,0.06);
+    --border-card:rgba(255,255,255,0.09);
+    --radius-lg:22px;
+    --radius-md:14px;
+    --radius-sm:9px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --font-display:-apple-system,'SF Pro Display','Helvetica Neue',Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,'SF Mono',Menlo,'Helvetica Neue',monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-display);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    overflow-x:hidden;
+  }
+  ::selection{background:rgba(255,255,255,0.14);color:#fff;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:8px;border:2px solid var(--bg);}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  :focus-visible{
+    outline:2px solid rgba(255,255,255,0.35);
+    outline-offset:2px;
+    border-radius:6px;
+  }
+
+  /* ---------------- Shell layout ---------------- */
+  .shell{
+    display:grid;
+    grid-template-columns:232px 1fr;
+    min-height:100vh;
+  }
+
+  /* ---------------- Sidebar ---------------- */
+  .sidebar{
+    background:var(--surface);
+    border-right:1px solid var(--border-soft);
+    padding:24px 16px;
+    display:flex;
+    flex-direction:column;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:6px 8px 28px;
+  }
+  .brand-mark{
+    width:30px;height:30px;
+    border-radius:9px;
+    background:var(--surface-3);
+    border:1px solid var(--border-soft);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .brand-mark img{
+    width:19px;height:19px;
+    object-fit:contain;
+  }
+  .brand-name{
+    font-weight:600;
+    font-size:14.5px;
+    letter-spacing:-0.01em;
+  }
+  .brand-tag{
+    font-size:10px;
+    color:var(--text-faint);
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    margin-top:2px;
+  }
+
+  .nav{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;
+    padding:9px 11px;
+    border-radius:9px;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--text-dim);
+    cursor:pointer;
+    user-select:none;
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.85;}
+  .nav-item:hover{background:rgba(255,255,255,0.045);color:var(--text);}
+  .nav-item.active{
+    background:var(--surface-3);
+    color:var(--text);
+    box-shadow:inset 0 0 0 1px var(--border-soft);
+  }
+  .nav-item.active svg{opacity:1;}
+  .nav-section-label{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--text-faint);
+    padding:18px 11px 7px;
+    font-weight:600;
+  }
+
+  .sidebar-spacer{flex:1;}
+
+  .kbd-hint{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 11px;border-radius:9px;
+    background:var(--surface-2);
+    border:1px solid var(--border-soft);
+    font-size:12px;color:var(--text-dim);
+    cursor:pointer;
+    margin-bottom:10px;
+    transition:background .2s var(--ease);
+  }
+  .kbd-hint:hover{background:var(--surface-3);}
+  .kbd-hint kbd{
+    font-family:var(--font-mono);
+    background:var(--surface-3);
+    border:1px solid var(--border-soft);
+    border-radius:5px;
+    padding:1.5px 5px;
+    font-size:10.5px;
+    color:var(--text-dim);
+  }
+
+  .status-pill{
+    display:flex;align-items:center;gap:9px;
+    padding:10px 11px;
+    border-radius:9px;
+    background:var(--surface-2);
+    border:1px solid var(--border-soft);
+    font-size:12.5px;
+  }
+  .status-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--green);
+    animation:pulse 2.4s ease-in-out infinite;
+    flex-shrink:0;
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .status-text{display:flex;flex-direction:column;gap:1px;}
+  .status-text b{font-weight:600;font-size:12.5px;letter-spacing:-0.01em;}
+  .status-text span{font-size:10.5px;color:var(--text-faint);}
+
+  /* ---------------- Main ---------------- */
+  .main{padding:28px 36px 64px;max-width:1360px;}
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:30px;
+    gap:16px;
+  }
+  .topbar h1{
+    font-size:24px;margin:0;font-weight:600;letter-spacing:-0.025em;
+  }
+  .topbar p{margin:4px 0 0;color:var(--text-dim);font-size:13px;letter-spacing:-0.005em;}
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;
+    border:none;border-radius:10px;
+    padding:9px 16px;
+    font-size:13.5px;font-weight:600;letter-spacing:-0.005em;
+    cursor:pointer;
+    transition:transform .2s var(--ease), background .2s var(--ease), opacity .2s var(--ease);
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--text);color:#000;}
+  .btn-primary:hover{opacity:.86;}
+  .btn-ghost{background:var(--surface-2);color:var(--text);border:1px solid var(--border-soft);}
+  .btn-ghost:hover{background:var(--surface-3);}
+  .btn-danger-ghost{background:var(--red-dim);color:var(--red);border:1px solid rgba(181,100,90,0.22);}
+  .btn-danger-ghost:hover{background:rgba(181,100,90,0.18);}
+
+  /* ---------------- Stat cards (bento) ---------------- */
+  .stat-grid{
+    display:grid;
+    grid-template-columns:1.35fr 1fr 1fr;
+    grid-template-rows:auto auto;
+    gap:14px;
+    margin-bottom:16px;
+  }
+  .card{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0) 45%),
+      var(--surface);
+    border:1px solid var(--border-card);
+    border-radius:var(--radius-lg);
+    padding:22px 24px;
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 14px 40px rgba(0,0,0,.4);
+    transition:transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
+  }
+  .card:hover{
+    transform:translateY(-2px);
+    border-color:rgba(255,255,255,0.14);
+    box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 18px 48px rgba(0,0,0,.46);
+  }
+  .card-hero{grid-column:1; grid-row:1 / 3; display:flex; flex-direction:column; justify-content:center;}
+  .card-hero .stat-value{font-size:44px;}
+  .card-wide{grid-column:2 / 4; grid-row:1;}
+  .card-sm{grid-row:2;}
+  .stat-label{
+    font-size:12px;color:var(--text-dim);font-weight:500;
+    display:flex;align-items:center;gap:6px;margin-bottom:10px;
+  }
+  .stat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .stat-value{
+    font-family:var(--font-mono);
+    font-size:28px;font-weight:600;letter-spacing:-0.02em;
+    display:flex;align-items:baseline;gap:6px;
+  }
+  .stat-value small{font-size:13px;color:var(--text-faint);font-weight:500;}
+  .stat-sub{font-size:11.5px;color:var(--text-faint);margin-top:6px;}
+
+  /* ---------------- Interdiction visualizer ---------------- */
+  .viz-panel{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 30%),
+      var(--surface);
+    border:1px solid var(--border-card);
+    border-radius:var(--radius-lg);
+    padding:22px 24px 18px;
+    margin-bottom:16px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 14px 40px rgba(0,0,0,.4);
+  }
+  .viz-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .viz-title{font-size:14px;font-weight:600;letter-spacing:-0.005em;color:var(--text);}
+  .viz-legend{display:flex;gap:16px;font-size:11.5px;color:var(--text-dim);}
+  .viz-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend-dot{width:7px;height:7px;border-radius:50%;}
+  .viz-scale{
+    position:relative;
+    height:16px;
+    margin-bottom:2px;
+  }
+  .viz-scale-label{
+    position:absolute;top:0;
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--text-faint);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    pointer-events:none;
+  }
+  #packetCanvas{
+    width:100%;height:190px;display:block;
+    border-radius:var(--radius-md);
+  }
+  .gate-label{
+    position:absolute;
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--text-faint);
+    letter-spacing:.05em;
+    pointer-events:none;
+  }
+
+  /* ---------------- Phase 26: topology / war-room map ---------------- */
+  #topoCanvas{
+    width:100%;height:230px;display:block;
+    border-radius:var(--radius-md);
+    background:var(--surface-2);
+  }
+  .topo-wrap{position:relative;}
+  .topo-empty{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;color:var(--text-faint);
+    pointer-events:none;
+  }
+  .topo-feed{
+    display:flex;flex-direction:column;gap:6px;
+    margin-top:12px;max-height:120px;overflow-y:auto;
+  }
+  .topo-row{
+    display:flex;align-items:center;gap:8px;
+    font-family:var(--font-mono);font-size:11px;
+    color:var(--text-dim);
+    padding:4px 6px;border-radius:6px;
+  }
+  .topo-row:nth-child(odd){background:var(--border-soft);}
+  .topo-flag{width:16px;text-align:center;color:var(--text-faint);font-family:var(--font-display);}
+  .topo-ip{color:var(--text);}
+  .topo-reason{margin-left:auto;color:var(--text-faint);}
+
+  /* ---------------- Two column ---------------- */
+  .grid-2{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start;}
+
+  .panel{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 20%),
+      var(--surface);
+    border:1px solid var(--border-card);
+    border-radius:var(--radius-lg);
+    overflow:hidden;
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 14px 40px rgba(0,0,0,.4);
+  }
+  .panel-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 22px;border-bottom:1px solid var(--border-soft);
+  }
+  .panel-head h2{font-size:14.5px;margin:0;font-weight:600;letter-spacing:-0.005em;}
+  .panel-head p{margin:3px 0 0;font-size:11.5px;color:var(--text-faint);}
+  .search-mini{
+    background:var(--surface-2);
+    border:1px solid var(--border-soft);
+    border-radius:8px;
+    padding:6px 10px;
+    font-size:12px;
+    color:var(--text-dim);
+    width:150px;
+    transition:border-color .2s var(--ease);
+  }
+  .search-mini:focus{color:var(--text);border-color:rgba(255,255,255,0.22);}
+
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--text-faint);font-weight:600;
+    padding:11px 22px;border-bottom:1px solid var(--border-soft);
+  }
+  tbody td{
+    padding:13px 22px;font-size:13px;border-bottom:1px solid var(--border-soft);
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background .15s var(--ease);}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  .ip-mono{font-family:var(--font-mono);font-size:12.5px;letter-spacing:-0.01em;}
+  .tag{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:3px 10px 3px 8px;border-radius:999px;
+    font-size:10.5px;font-weight:600;letter-spacing:.01em;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.06);
+    color:var(--text);
+  }
+  .tag::before{
+    content:"";width:5px;height:5px;border-radius:50%;flex-shrink:0;
+  }
+  .tag-blocked::before{background:var(--red);}
+  .tag-limited::before{background:var(--amber);}
+  .tag-reason-manual::before{background:var(--accent);}
+  .tag-reason-rate-limit::before{background:var(--amber);}
+  .tag-reason-anomaly::before{background:var(--red);}
+  .tag-reason-threat-intel::before{background:var(--red);}
+  .tag-reason-none::before{background:var(--text-faint);}
+
+  /* Anomaly feed — mirrors `sxctl anomalies`: one self-explanatory line per
+     detection, no black-box score to interpret. */
+  .anomaly-row{
+    display:flex;flex-direction:column;gap:3px;
+    padding:10px 14px;border-radius:var(--radius-sm);
+    border:1px solid var(--border-soft);
+    margin-bottom:6px;
+  }
+  .anomaly-row.blocked{border-color:rgba(181,100,90,0.28);background:var(--red-dim);}
+  .anomaly-row.dryrun{border-color:rgba(191,160,106,0.24);background:var(--amber-dim);}
+  .anomaly-head{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;}
+  .anomaly-ip{font-family:var(--font-mono);font-weight:600;}
+  .anomaly-time{color:var(--text-faint);font-family:var(--font-mono);font-size:11px;}
+  .anomaly-label{font-size:12px;color:var(--text-dim);}
+  .anomaly-verdict{font-size:11px;font-weight:600;}
+  .anomaly-verdict.blocked{color:var(--red);}
+  .anomaly-verdict.dryrun{color:var(--amber);}
+  .row-actions button{
+    background:none;border:none;color:var(--text-faint);cursor:pointer;
+    font-size:12px;padding:4px 8px;border-radius:6px;
+    transition:color .15s var(--ease), background .15s var(--ease);
+  }
+  .row-actions button:hover{color:var(--text);background:var(--surface-3);}
+  .empty-state{padding:44px 20px;text-align:center;color:var(--text-faint);font-size:13px;}
+
+  .mini-list{padding:8px 14px 16px;}
+  .mini-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px;border-radius:9px;
+    transition:background .15s var(--ease);
+  }
+  .mini-row:hover{background:rgba(255,255,255,0.02);}
+  .mini-left{display:flex;align-items:center;gap:10px;}
+  .mini-bar-track{width:60px;height:4px;border-radius:4px;background:var(--surface-3);overflow:hidden;}
+  .mini-bar-fill{height:100%;background:var(--red);border-radius:4px;}
+  .mini-count{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);}
+
+  .sparkline-wrap{padding:18px 22px 22px;}
+  #trafficChart{width:100%;height:120px;display:block;}
+
+  /* ---------------- Modal ---------------- */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.65);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    display:flex;align-items:flex-start;justify-content:center;
+    padding-top:12vh;
+    z-index:100;opacity:0;pointer-events:none;
+    transition:opacity .2s var(--ease);
+  }
+  .modal-backdrop.open{opacity:1;pointer-events:auto;}
+  .modal{
+    background:var(--surface-2);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-lg);
+    width:420px;max-width:90vw;
+    padding:24px;
+    transform:translateY(-6px) scale(.98);
+    transition:transform .22s var(--ease);
+    box-shadow:0 30px 70px rgba(0,0,0,.5);
+  }
+  .modal-backdrop.open .modal{transform:translateY(0) scale(1);}
+  .modal h3{margin:0 0 5px;font-size:17px;font-weight:600;letter-spacing:-0.01em;}
+  .modal p.hint{margin:0 0 20px;font-size:12.5px;color:var(--text-faint);}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;color:var(--text-dim);margin-bottom:6px;font-weight:500;}
+  .field input{
+    width:100%;background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:9px;padding:10px 12px;
+    color:var(--text);font-size:13.5px;font-family:var(--font-mono);
+    transition:border-color .2s var(--ease);
+  }
+  .field input:focus{border-color:rgba(255,255,255,0.22);}
+  .field input::placeholder{color:var(--text-faint);font-family:var(--font-display);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;}
+
+  /* ---------------- Settings: token field + toggle switch + test pill ---------------- */
+  .field-with-btn{position:relative;}
+  .field-with-btn input{padding-right:40px;}
+  .field-reveal-btn{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    width:28px;height:28px;border-radius:7px;border:none;background:transparent;
+    color:var(--text-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .15s var(--ease),color .15s var(--ease);
+  }
+  .field-reveal-btn:hover{background:rgba(255,255,255,0.06);color:var(--text);}
+  .field-reveal-btn svg{width:15px;height:15px;}
+
+  .switch-row{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:2px 0;margin-bottom:14px;
+  }
+  .switch-row label{font-size:13px;color:var(--text);margin:0;cursor:pointer;}
+  .switch-row p{margin:2px 0 0;font-size:11.5px;color:var(--text-faint);}
+  .switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch-slider{
+    position:absolute;inset:0;cursor:pointer;border-radius:22px;
+    background:var(--surface-3);border:1px solid var(--border-soft);
+    transition:background .18s var(--ease);
+  }
+  .switch-slider::before{
+    content:"";position:absolute;height:16px;width:16px;left:2px;top:2px;
+    border-radius:50%;background:var(--text-dim);
+    transition:transform .18s var(--ease),background .18s var(--ease);
+  }
+  .switch input:checked + .switch-slider{background:var(--green);border-color:var(--green);}
+  .switch input:checked + .switch-slider::before{transform:translateX(16px);background:#08130c;}
+
+  .conn-test-row{display:flex;align-items:center;gap:10px;margin:-4px 0 16px;}
+  .conn-test-row .btn{flex-shrink:0;}
+  .conn-test-result{font-size:12px;color:var(--text-faint);display:flex;align-items:center;gap:6px;min-height:16px;}
+  .conn-test-result .dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);flex-shrink:0;}
+  .conn-test-result.ok .dot{background:var(--green);}
+  .conn-test-result.ok{color:var(--green);}
+  .conn-test-result.fail .dot{background:var(--red);}
+  .conn-test-result.fail{color:var(--red);}
+  .conn-test-result.pending .dot{background:var(--amber);animation:pulseDot 1s ease-in-out infinite;}
+  @keyframes pulseDot{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  /* ---------------- Command palette ---------------- */
+  .palette-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    display:flex;align-items:flex-start;justify-content:center;
+    padding-top:12vh;z-index:200;
+    opacity:0;pointer-events:none;transition:opacity .18s var(--ease);
+  }
+  .palette-backdrop.open{opacity:1;pointer-events:auto;}
+  .palette{
+    width:560px;max-width:90vw;
+    background:rgba(18,18,18,.94);
+    border:1px solid var(--border-soft);
+    border-radius:16px;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);
+    overflow:hidden;
+    transform:translateY(-8px) scale(.99);
+    transition:transform .18s var(--ease);
+  }
+  .palette-backdrop.open .palette{transform:translateY(0) scale(1);}
+  .palette-input{
+    width:100%;background:transparent;border:none;
+    border-bottom:1px solid var(--border-soft);
+    padding:17px 18px;font-size:15px;color:var(--text);
+  }
+  .palette-list{max-height:320px;overflow-y:auto;padding:8px;}
+  .palette-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 12px;border-radius:9px;font-size:13.5px;cursor:pointer;
+    transition:background .12s var(--ease);
+  }
+  .palette-item.active,.palette-item:hover{background:var(--surface-3);}
+  .palette-item span.desc{color:var(--text-faint);font-size:11.5px;}
+
+  /* ---------------- Demo banner ---------------- */
+  .demo-banner{
+    display:none;
+    align-items:center;gap:10px;
+    background:var(--surface-2);color:var(--text-dim);
+    border:1px solid var(--border-card);
+    padding:10px 16px;border-radius:11px;
+    font-size:12.5px;font-weight:450;margin-bottom:20px;
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+  }
+  .demo-banner.show{display:inline-flex;}
+  .demo-banner .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--amber);flex-shrink:0;
+  }
+  .demo-banner b{color:var(--text);font-weight:600;}
+
+  .toast-wrap{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:8px;z-index:300;}
+  .toast{
+    background:var(--surface-3);border:1px solid var(--border-soft);
+    padding:11px 16px;border-radius:10px;font-size:12.5px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+    animation:toastIn .22s var(--ease);
+  }
+  @keyframes toastIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  @media (prefers-reduced-motion: reduce){
+    .status-dot{animation:none;}
+    *{scroll-behavior:auto !important;}
+  }
+
+  /* ---------------- Responsive ---------------- */
+  @media (max-width: 980px){
+    .shell{grid-template-columns:1fr;}
+    .sidebar{
+      position:sticky;top:0;height:auto;
+      flex-direction:row;align-items:center;
+      padding:12px 14px;overflow-x:auto;
+      border-right:none;border-bottom:1px solid var(--border-soft);
+      z-index:50;
+    }
+    .brand{padding:0 14px 0 0;}
+    .nav{flex-direction:row;}
+    .nav-section-label{display:none;}
+    .sidebar-spacer{display:none;}
+    .kbd-hint,.status-pill{display:none;}
+    .stat-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto;}
+    .card-hero{grid-column:1 / 3;grid-row:auto;}
+    .card-hero .stat-value{font-size:36px;}
+    .card-wide{grid-column:1 / 3;grid-row:auto;}
+    .card-sm{grid-row:auto;}
+    .grid-2{grid-template-columns:1fr;}
+    .main{padding:18px 16px 50px;}
+  }
+
+  @media (max-width: 560px){
+    .stat-grid{grid-template-columns:1fr;}
+    .card-hero,.card-wide,.card-sm{grid-column:1;}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><img src="brand-mark.png" alt="SENTRYX"></div>
+      <div>
+        <div class="brand-name">SENTRYX</div>
+        <div class="brand-tag">CONTROL ROOM</div>
+      </div>
+    </div>
+
+    <div class="nav-section-label">Monitor</div>
+    <ul class="nav">
+      <li class="nav-item active" data-nav="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Overview
+      </li>
+      <li class="nav-item" data-nav="rules">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>
+        Rules
+      </li>
+      <li class="nav-item" data-nav="traffic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 4 9-9"/><path d="M14 7h7v7"/></svg>
+        Traffic
+      </li>
+    </ul>
+
+    <div class="nav-section-label">System</div>
+    <ul class="nav">
+      <li class="nav-item" data-nav="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.6V21a2 2 0 11-4 0v-.2a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.6-1H3a2 2 0 110-4h.2a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.6V3a2 2 0 114 0v.2a1.7 1.7 0 001 1.6 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.6 1H21a2 2 0 110 4h-.2a1.7 1.7 0 00-1.6 1z"/></svg>
+        Settings
+      </li>
+    </ul>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="kbd-hint" id="openPaletteBtn">
+      <span>Quick actions</span>
+      <kbd>⌘K</kbd>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot" id="statusDot"></div>
+      <div class="status-text">
+        <b id="statusIface">eth0</b>
+        <span id="statusLine">connecting…</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="demo-banner" id="demoBanner">
+      <span class="dot"></span><span><b>Demo mode</b> — no sentryxd daemon detected. Showing simulated traffic; rules added here stay local to this tab.</span>
+    </div>
+
+    <div class="topbar">
+      <div>
+        <h1>Overview</h1>
+        <p>Live packet interdiction across <span id="ifaceLabel" style="font-family:var(--font-mono);">eth0</span></p>
+      </div>
+      <button class="btn btn-primary" id="addRuleBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Block address
+      </button>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="card card-hero">
+        <div class="stat-label"><span class="stat-dot" style="background:var(--green)"></span>Packets allowed</div>
+        <div class="stat-value" id="statAllowed">0</div>
+        <div class="stat-sub" id="statAllowedBytes">0 B transferred</div>
+      </div>
+      <div class="card card-wide">
+        <div class="stat-label"><span class="stat-dot" style="background:var(--red)"></span>Packets dropped</div>
+        <div class="stat-value" id="statDropped">0</div>
+        <div class="stat-sub" id="statDroppedBytes">0 B rejected</div>
+      </div>
+      <div class="card card-sm">
+        <div class="stat-label"><span class="stat-dot" style="background:var(--accent)"></span>Active rules</div>
+        <div class="stat-value" id="statRules">0</div>
+        <div class="stat-sub">Enforced kernel-side</div>
+      </div>
+      <div class="card card-sm">
+        <div class="stat-label"><span class="stat-dot" style="background:var(--amber)"></span>Drop rate</div>
+        <div class="stat-value" id="statDropRate">0<small>%</small></div>
+        <div class="stat-sub" id="statPps">0 pps observed</div>
+      </div>
+    </div>
+
+    <!-- Interdiction visualizer -->
+    <div class="viz-panel">
+      <div class="viz-head">
+        <div class="viz-title">Interdiction feed</div>
+        <div class="viz-legend">
+          <span><i class="legend-dot" style="background:var(--green)"></i>passed</span>
+          <span><i class="legend-dot" style="background:var(--red)"></i>dropped at gate</span>
+        </div>
+      </div>
+      <div class="viz-scale">
+        <span class="viz-scale-label" style="left:0;">Inbound traffic</span>
+        <span class="viz-scale-label" id="gateLabel" style="left:62%; transform:translateX(-50%);">Gate</span>
+      </div>
+      <canvas id="packetCanvas"></canvas>
+    </div>
+
+    <!-- Phase 26: live topology / war-room map -->
+    <div class="viz-panel" id="topoPanel">
+      <div class="viz-head">
+        <div class="viz-title">Live topology — war room</div>
+        <div class="viz-legend">
+          <span><i class="legend-dot" style="background:var(--red)"></i>block, resolved</span>
+          <span><i class="legend-dot" style="background:var(--accent)"></i>block, unresolved origin</span>
+        </div>
+      </div>
+      <div class="topo-wrap">
+        <canvas id="topoCanvas"></canvas>
+        <div class="empty-state topo-empty" id="topoEmpty">No blocks yet — the map lights up as traffic gets dropped.</div>
+      </div>
+      <div class="topo-feed" id="topoFeed"></div>
+    </div>
+
+    <!-- Rules + side panels -->
+    <div class="grid-2">
+      <div class="panel" id="rulesPanel">
+        <div class="panel-head">
+          <div>
+            <h2>Blocklist rules</h2>
+            <p>Enforced live via eBPF map — no reload required</p>
+          </div>
+          <input class="search-mini" id="ruleSearch" placeholder="Filter by IP or label">
+        </div>
+        <table>
+          <thead>
+            <tr><th>Address</th><th>Label</th><th>Status</th><th>Reason</th><th>Blocked since</th><th></th></tr>
+          </thead>
+          <tbody id="rulesBody"></tbody>
+        </table>
+        <div class="empty-state" id="rulesEmpty" style="display:none;">No rules match. The wall is open right now.</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Traffic, last 60s</h2>
+              <p>Allowed vs dropped, per second</p>
+            </div>
+          </div>
+          <div class="sparkline-wrap">
+            <canvas id="trafficChart"></canvas>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Top blocked sources</h2>
+              <p>By packets dropped this session</p>
+            </div>
+          </div>
+          <div class="mini-list" id="topBlockedList"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Anomaly feed</h2>
+              <p>EWMA baseline detector — every entry explains itself</p>
+            </div>
+          </div>
+          <div class="mini-list" id="anomalyFeedList"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ Add rule modal ============ -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>Block an address</h3>
+    <p class="hint">Takes effect on the next packet — no reload needed.</p>
+    <div class="field">
+      <label for="ipInput">IPv4 address</label>
+      <input id="ipInput" placeholder="203.0.113.7" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="labelInput">Label (optional)</label>
+      <input id="labelInput" style="font-family:var(--font-display);" placeholder="e.g. known scanner">
+    </div>
+    <div class="field">
+      <label for="rateInput">Rate limit, packets/sec (optional — leave blank for a hard block)</label>
+      <input id="rateInput" placeholder="e.g. 50">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelModalBtn">Cancel</button>
+      <button class="btn btn-primary" id="confirmBlockBtn">Block address</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Settings modal ============ -->
+<div class="modal-backdrop" id="settingsBackdrop">
+  <div class="modal">
+    <h3>Settings</h3>
+    <p class="hint">Stored locally in this browser only — never sent anywhere but the daemon you point it at.</p>
+
+    <div class="field">
+      <label for="apiBaseInput">Daemon API address</label>
+      <input id="apiBaseInput" placeholder="http://localhost:9090" autocomplete="off">
+    </div>
+
+    <div class="field field-with-btn">
+      <label for="tokenInput">API token (SENTRYX_TOKEN)</label>
+      <input id="tokenInput" type="password" style="font-family:var(--font-mono);" placeholder="leave blank if the daemon runs -insecure" autocomplete="off">
+      <button type="button" class="field-reveal-btn" id="tokenRevealBtn" title="Show token" aria-label="Show token">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+
+    <div class="conn-test-row">
+      <button type="button" class="btn btn-ghost" id="testConnBtn">Test connection</button>
+      <span class="conn-test-result" id="connTestResult"><span class="dot"></span><span id="connTestText">not tested yet</span></span>
+    </div>
+
+    <div class="switch-row">
+      <div>
+        <label for="ambientToggle">Ambient idle particles</label>
+        <p>Subtle background pulses in demo mode when nothing's happening</p>
+      </div>
+      <label class="switch">
+        <input id="ambientToggle" type="checkbox">
+        <span class="switch-slider"></span>
+      </label>
+    </div>
+
+    <p class="hint" id="settingsStatus"></p>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelSettingsBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveSettingsBtn">Save &amp; reconnect</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Command palette ============ -->
+<div class="palette-backdrop" id="paletteBackdrop">
+  <div class="palette">
+    <input class="palette-input" id="paletteInput" placeholder="Type a command or search…" autocomplete="off">
+    <div class="palette-list" id="paletteList"></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------- State ---------------- */
+  const SETTINGS_KEY = 'sentryx.settings';
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem(SETTINGS_KEY);
+      if(!raw) return {apiBase:'', token:'', ambient:true};
+      const parsed = JSON.parse(raw);
+      return {apiBase: parsed.apiBase||'', token: parsed.token||'', ambient: parsed.ambient!==false};
+    }catch(e){ return {apiBase:'', token:'', ambient:true}; }
+  }
+  function saveSettings(s){
+    try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }catch(e){}
+  }
+  const savedSettings = loadSettings();
+
+  const state = {
+    liveMode: false,
+    apiBase: savedSettings.apiBase || '',
+    token: savedSettings.token || '',
+    ambient: savedSettings.ambient,
+    rules: [],          // {ip, label, createdAt, rateLimit}
+    stats: {allowed:0, dropped:0, bytesAllowed:0, bytesDropped:0},
+    prevStats: {allowed:0, dropped:0},
+    history: [],         // last 60 samples of {allowed, dropped} deltas
+    blockedSourceCounts: {}, // ip -> count, demo mode only
+  };
+
+  // Small helper so every authenticated fetch call sends the same header —
+  // used by tryLiveMode, refreshRules, and the block/unblock handlers below.
+  function authHeaders(extra){
+    const h = Object.assign({}, extra||{});
+    if(state.token) h['Authorization'] = 'Bearer ' + state.token;
+    return h;
+  }
+
+  const KNOWN_BAD_POOL = ['185.220.101.7','45.155.204.19','193.106.191.3','89.248.165.42','198.51.100.14'];
+  const BENIGN_POOL = ['10.0.0.4','172.16.4.12','192.168.1.44','203.0.113.55','8.8.4.4','142.250.72.14','151.101.1.69'];
+
+  /* ---------------- Utilities ---------------- */
+  function humanBytes(b){
+    if(b < 1024) return b + ' B';
+    const units = ['KB','MB','GB','TB'];
+    let i = -1;
+    do{ b/=1024; i++; }while(b>=1024 && i<units.length-1);
+    return b.toFixed(1) + ' ' + units[i];
+  }
+  function fmtInt(n){ return n.toLocaleString('en-US'); }
+  function timeAgo(date){
+    return new Date(date).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+  }
+  function toast(msg){
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 2600);
+  }
+  function ipValid(ip){
+    return /^(\d{1,3}\.){3}\d{1,3}$/.test(ip) && ip.split('.').every(o => +o >= 0 && +o <= 255);
+  }
+
+  /* ---------------- Rendering: stat cards ---------------- */
+  function renderStats(){
+    document.getElementById('statAllowed').textContent = fmtInt(state.stats.allowed);
+    document.getElementById('statDropped').textContent = fmtInt(state.stats.dropped);
+    document.getElementById('statAllowedBytes').textContent = humanBytes(state.stats.bytesAllowed) + ' transferred';
+    document.getElementById('statDroppedBytes').textContent = humanBytes(state.stats.bytesDropped) + ' rejected';
+    document.getElementById('statRules').textContent = fmtInt(state.rules.length);
+
+    const total = state.stats.allowed + state.stats.dropped;
+    const rate = total > 0 ? (state.stats.dropped/total*100) : 0;
+    document.getElementById('statDropRate').innerHTML = rate.toFixed(1) + '<small>%</small>';
+
+    const last = state.history[state.history.length-1];
+    const pps = last ? (last.allowed + last.dropped) : 0;
+    document.getElementById('statPps').textContent = fmtInt(pps) + ' pps observed';
+  }
+
+  /* ---------------- Rendering: rules table ---------------- */
+  function renderRules(){
+    const tbody = document.getElementById('rulesBody');
+    const filterVal = document.getElementById('ruleSearch').value.trim().toLowerCase();
+    const filtered = state.rules.filter(r =>
+      !filterVal || r.ip.includes(filterVal) || (r.label||'').toLowerCase().includes(filterVal)
+    );
+
+    tbody.innerHTML = '';
+    document.getElementById('rulesEmpty').style.display = filtered.length ? 'none' : 'block';
+
+    filtered.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt)).forEach(r => {
+      const tr = document.createElement('tr');
+      const reason = r.reasonStr || 'manual';
+      tr.innerHTML = `
+        <td class="ip-mono">${r.ip}</td>
+        <td>${r.label ? r.label : '<span style="color:var(--text-faint)">—</span>'}</td>
+        <td>${r.rateLimit ? `<span class="tag tag-limited">${r.rateLimit} pps</span>` : '<span class="tag tag-blocked">blocked</span>'}</td>
+        <td><span class="tag tag-reason-${reason}" title="sxctl why ${r.ip}">${reason}</span></td>
+        <td style="color:var(--text-dim);">${timeAgo(r.createdAt)}</td>
+        <td class="row-actions"><button data-ip="${r.ip}" title="Remove rule">Remove</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('button[data-ip]').forEach(btn=>{
+      btn.addEventListener('click', () => removeRule(btn.dataset.ip));
+    });
+
+    renderStats();
+  }
+
+  function renderTopBlocked(){
+    const list = document.getElementById('topBlockedList');
+    const entries = Object.entries(state.blockedSourceCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    if(entries.length === 0){
+      list.innerHTML = '<div class="empty-state" style="padding:24px 8px;">No drops recorded yet</div>';
+      return;
+    }
+    const max = entries[0][1];
+    list.innerHTML = entries.map(([ip,count])=>`
+      <div class="mini-row">
+        <div class="mini-left">
+          <span class="legend-dot" style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;"></span>
+          <span class="ip-mono" style="font-size:12px;">${ip}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${(count/max*100).toFixed(0)}%"></div></div>
+          <span class="mini-count">${fmtInt(count)}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderAnomalyFeed(){
+    const list = document.getElementById('anomalyFeedList');
+    const events = state.anomalyEvents || [];
+    if(events.length === 0){
+      list.innerHTML = '<div class="empty-state" style="padding:24px 8px;">No anomalies detected yet</div>';
+      return;
+    }
+    list.innerHTML = events.slice(-8).reverse().map(e => `
+      <div class="anomaly-row ${e.blocked ? 'blocked' : 'dryrun'}">
+        <div class="anomaly-head">
+          <span class="anomaly-ip">${e.ip}</span>
+          <span class="anomaly-time">${new Date(e.detected).toLocaleTimeString([], {hour12:false})}</span>
+        </div>
+        <div class="anomaly-label">${e.label}</div>
+        <div class="anomaly-verdict ${e.blocked ? 'blocked' : 'dryrun'}">${e.blocked ? 'blocked' : 'dry-run — not blocked'}</div>
+      </div>
+    `).join('');
+  }
+
+  /* ---------------- Rule mutations ---------------- */
+  async function addRule(ip, label, rateLimit){
+    if(state.liveMode){
+      const res = await fetch(state.apiBase + '/api/rules', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', ...(state.token?{'Authorization':'Bearer '+state.token}:{})},
+        body: JSON.stringify({ip, label, rate_limit_pps: rateLimit||0})
+      });
+      if(!res.ok){ const e = await res.json().catch(()=>({error:'request failed'})); throw new Error(e.error||'request failed'); }
+    }
+    state.rules.push({ip, label, rateLimit: rateLimit||0, createdAt: new Date().toISOString()});
+    renderRules();
+    toast(`Blocked ${ip}`);
+  }
+
+  async function removeRule(ip){
+    if(state.liveMode){
+      try{
+        await fetch(state.apiBase + '/api/rules/' + ip, {
+          method:'DELETE',
+          headers:{...(state.token?{'Authorization':'Bearer '+state.token}:{})}
+        });
+      }catch(e){ /* best effort */ }
+    }
+    state.rules = state.rules.filter(r=>r.ip!==ip);
+    renderRules();
+    toast(`Unblocked ${ip}`);
+  }
+
+  /* ---------------- Sparkline (canvas) ---------------- */
+  function drawTrafficChart(){
+    const canvas = document.getElementById('trafficChart');
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight || 120;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr,dpr);
+    ctx.clearRect(0,0,w,h);
+
+    const data = state.history.slice(-40);
+    if(data.length === 0) return;
+    const maxVal = Math.max(1, ...data.map(d=>d.allowed+d.dropped));
+    const barW = w / 40;
+
+    data.forEach((d, i) => {
+      const x = w - (data.length - i) * barW;
+      const totalH = (d.allowed + d.dropped) / maxVal * (h-8);
+      const dropH = d.dropped / maxVal * (h-8);
+      const allowH = totalH - dropH;
+
+      ctx.fillStyle = 'rgba(122,154,130,0.85)';
+      ctx.fillRect(x+1, h - totalH, Math.max(1,barW-2), allowH);
+      ctx.fillStyle = 'rgba(181,100,90,0.85)';
+      ctx.fillRect(x+1, h - dropH, Math.max(1,barW-2), dropH);
+    });
+  }
+
+  /* ---------------- Packet interdiction visualizer ---------------- */
+  const packetCanvas = document.getElementById('packetCanvas');
+  const pctx = packetCanvas.getContext('2d');
+  let particles = [];
+  let vizW=0, vizH=0, gateX=0;
+
+  /* ---------------- Phase 26: topology / war-room map ---------------- */
+  const topoCanvas = document.getElementById('topoCanvas');
+  const tctx = topoCanvas.getContext('2d');
+  const topoEmptyEl = document.getElementById('topoEmpty');
+  const topoFeedEl = document.getElementById('topoFeed');
+  let topoW=0, topoH=0;
+  let topoDots = [];       // {x,y,resolved,bornAt}
+  let topoSeenSeq = 0;     // highest Seq we've drawn/logged, for de-dup on reconnect
+  const TOPO_PULSE_MS = 2600;
+
+  function resizeTopo(){
+    const dpr = window.devicePixelRatio || 1;
+    topoW = topoCanvas.clientWidth; topoH = topoCanvas.clientHeight || 230;
+    topoCanvas.width = topoW*dpr; topoCanvas.height = topoH*dpr;
+    tctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  // Equirectangular projection: lon in [-180,180] -> x, lat in [-90,90] -> y.
+  function projectLatLon(lat, lon){
+    return {
+      x: (lon + 180) / 360 * topoW,
+      y: (90 - lat) / 180 * topoH,
+    };
+  }
+
+  function drawTopoGraticule(){
+    tctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    tctx.lineWidth = 1;
+    for(let i=1;i<8;i++){
+      const x = topoW*i/8;
+      tctx.beginPath(); tctx.moveTo(x,0); tctx.lineTo(x,topoH); tctx.stroke();
+    }
+    for(let i=1;i<4;i++){
+      const y = topoH*i/4;
+      tctx.beginPath(); tctx.moveTo(0,y); tctx.lineTo(topoW,y); tctx.stroke();
+    }
+    // equator, a shade brighter
+    tctx.strokeStyle = 'rgba(255,255,255,0.09)';
+    tctx.beginPath(); tctx.moveTo(0, topoH/2); tctx.lineTo(topoW, topoH/2); tctx.stroke();
+  }
+
+  function pushTopoEvent(ev){
+    if(ev.seq && ev.seq <= topoSeenSeq) return;
+    if(ev.seq) topoSeenSeq = ev.seq;
+
+    if(ev.resolved && typeof ev.lat === 'number' && typeof ev.lon === 'number'){
+      const p = projectLatLon(ev.lat, ev.lon);
+      topoDots.push({x:p.x, y:p.y, resolved:true, bornAt: performance.now()});
+    } else {
+      // Unresolved origin: plot at a fixed "somewhere" marker (0,0 on the
+      // grid) rather than nothing, so an operator still sees *that* a
+      // block happened even without a country fix.
+      const p = projectLatLon(0, 0);
+      topoDots.push({x:p.x, y:p.y, resolved:false, bornAt: performance.now()});
+    }
+    if(topoDots.length > 200) topoDots.shift();
+    topoEmptyEl.style.display = 'none';
+
+    const row = document.createElement('div');
+    row.className = 'topo-row';
+    row.innerHTML =
+      '<span class="topo-flag">' + (ev.country ? ev.country : '··') + '</span>' +
+      '<span class="topo-ip">' + escapeHtml(ev.ip || '') + (ev.label ? (' <span style="color:var(--text-faint)">'+escapeHtml(ev.label)+'</span>') : '') + '</span>' +
+      '<span class="topo-reason">' + escapeHtml(ev.reason || '') + '</span>';
+    topoFeedEl.prepend(row);
+    while(topoFeedEl.childElementCount > 30) topoFeedEl.removeChild(topoFeedEl.lastChild);
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function drawTopo(){
+    tctx.clearRect(0,0,topoW,topoH);
+    drawTopoGraticule();
+    const now = performance.now();
+    topoDots = topoDots.filter(d => now - d.bornAt < TOPO_PULSE_MS);
+    for(const d of topoDots){
+      const t = (now - d.bornAt) / TOPO_PULSE_MS; // 0..1
+      const color = d.resolved ? '181,100,90' : '142,142,147'; // --red / --accent, rgb
+      // core dot, fading in then holding
+      tctx.beginPath();
+      tctx.fillStyle = 'rgba(' + color + ',' + Math.max(0, 0.9 - t*0.6) + ')';
+      tctx.arc(d.x, d.y, 2.5, 0, Math.PI*2);
+      tctx.fill();
+      // expanding pulse ring
+      tctx.beginPath();
+      tctx.strokeStyle = 'rgba(' + color + ',' + Math.max(0, 0.6*(1-t)) + ')';
+      tctx.lineWidth = 1.5;
+      tctx.arc(d.x, d.y, 3 + t*22, 0, Math.PI*2);
+      tctx.stroke();
+    }
+    requestAnimationFrame(drawTopo);
+  }
+
+  let topoStream = null;
+  async function startTopology(){
+    try{
+      const res = await fetch(state.apiBase + '/api/topology?limit=100', {headers: authHeaders()});
+      if(res.ok){
+        const data = await res.json();
+        (data.events || []).forEach(pushTopoEvent);
+        topoSeenSeq = data.latest_seq || topoSeenSeq;
+      }
+    }catch(e){ /* backfill is best-effort — the live stream below still works without it */ }
+
+    const streamUrl = state.apiBase + '/api/topology/stream?since=' + topoSeenSeq +
+      (state.token ? ('&token=' + encodeURIComponent(state.token)) : '');
+    topoStream = new EventSource(streamUrl);
+    topoStream.onmessage = (ev) => {
+      try{ JSON.parse(ev.data).forEach(pushTopoEvent); }catch(e){}
+    };
+  }
+
+  function resizeViz(){
+    const dpr = window.devicePixelRatio || 1;
+    vizW = packetCanvas.clientWidth; vizH = packetCanvas.clientHeight || 190;
+    packetCanvas.width = vizW*dpr; packetCanvas.height = vizH*dpr;
+    pctx.setTransform(dpr,0,0,dpr,0,0);
+    gateX = vizW * 0.62;
+  }
+
+  function spawnParticle(blocked, srcIp){
+    particles.push({
+      x: -10,
+      y: 14 + Math.random()*(vizH-28),
+      speed: 1.6 + Math.random()*1.8,
+      blocked,
+      srcIp,
+      state: 'flying', // flying | burst | done
+      burstT: 0,
+      r: 2 + Math.random()*1.4,
+    });
+  }
+
+  function stepViz(){
+    pctx.clearRect(0,0,vizW,vizH);
+
+    // gate zone — a soft, quiet scan band with a crisp centerline
+    const bandW = 46;
+    const bandGrad = pctx.createLinearGradient(gateX-bandW/2,0,gateX+bandW/2,0);
+    bandGrad.addColorStop(0,'rgba(255,255,255,0)');
+    bandGrad.addColorStop(0.5,'rgba(255,255,255,0.035)');
+    bandGrad.addColorStop(1,'rgba(255,255,255,0)');
+    pctx.fillStyle = bandGrad;
+    pctx.fillRect(gateX-bandW/2, 0, bandW, vizH);
+
+    const gateGrad = pctx.createLinearGradient(0,0,0,vizH);
+    gateGrad.addColorStop(0,'rgba(255,255,255,0.02)');
+    gateGrad.addColorStop(0.5,'rgba(255,255,255,0.18)');
+    gateGrad.addColorStop(1,'rgba(255,255,255,0.02)');
+    pctx.fillStyle = gateGrad;
+    pctx.fillRect(gateX-0.5, 0, 1, vizH);
+
+    particles.forEach(p => {
+      if(p.state === 'flying'){
+        p.x += p.speed;
+        if(p.x >= gateX){
+          if(p.blocked){ p.state='burst'; }
+          else { p.state='passed'; }
+        }
+      } else if(p.state === 'passed'){
+        p.x += p.speed*1.15;
+        p.fadeT = Math.min(1, (p.x-gateX)/(vizW-gateX));
+      } else if(p.state === 'burst'){
+        p.burstT += 0.06;
+        if(p.burstT >= 1) p.state = 'done';
+      }
+
+      if(p.state === 'flying'){
+        // in transit — verdict isn't known yet, every packet looks the same
+        pctx.beginPath();
+        pctx.fillStyle = 'rgba(255,255,255,0.4)';
+        pctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        pctx.fill();
+      } else if(p.state === 'passed'){
+        pctx.beginPath();
+        pctx.fillStyle = `rgba(122,154,130,${0.85 - (p.fadeT||0)*0.55})`;
+        pctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        pctx.fill();
+      } else if(p.state === 'burst'){
+        const alpha = 1 - p.burstT;
+        const radius = p.r + p.burstT*8;
+        pctx.beginPath();
+        pctx.strokeStyle = `rgba(181,100,90,${alpha})`;
+        pctx.lineWidth = 1.4;
+        pctx.arc(p.x, p.y, radius, 0, Math.PI*2);
+        pctx.stroke();
+      }
+    });
+
+    particles = particles.filter(p => p.state !== 'done' && p.x < vizW + 20);
+
+    requestAnimationFrame(stepViz);
+  }
+
+  /* ---------------- Demo data generator ---------------- */
+  let demoTicker = null;
+  function startDemo(){
+    state.liveMode = false;
+    document.getElementById('demoBanner').classList.add('show');
+    document.getElementById('statusDot').style.background = 'var(--amber)';
+    document.getElementById('statusLine').textContent = 'demo mode';
+    document.getElementById('statusIface').textContent = 'simulated';
+    document.getElementById('ifaceLabel').textContent = 'eth0 (simulated)';
+
+    state.rules = [
+      {ip:'185.220.101.7', label:'known scanner', rateLimit:0, createdAt: new Date(Date.now()-1000*60*40).toISOString()},
+      {ip:'45.155.204.19', label:'brute-force attempts', rateLimit:0, createdAt: new Date(Date.now()-1000*60*12).toISOString()},
+      {ip:'193.106.191.3', label:'', rateLimit:50, createdAt: new Date(Date.now()-1000*60*3).toISOString()},
+    ];
+    renderRules();
+
+    let secondBucket = {allowed:0, dropped:0};
+
+    demoTicker = setInterval(() => {
+      const burstSize = 1 + Math.floor(Math.random()*3);
+      for(let i=0;i<burstSize;i++){
+        const isAttack = Math.random() < 0.32;
+        const pool = isAttack ? KNOWN_BAD_POOL : BENIGN_POOL;
+        const ip = pool[Math.floor(Math.random()*pool.length)];
+        const blocked = state.rules.some(r => r.ip === ip && !r.rateLimit);
+
+        spawnParticle(blocked, ip);
+
+        const bytes = 200 + Math.floor(Math.random()*1200);
+        if(blocked){
+          state.stats.dropped++;
+          state.stats.bytesDropped += bytes;
+          secondBucket.dropped++;
+          state.blockedSourceCounts[ip] = (state.blockedSourceCounts[ip]||0)+1;
+        } else {
+          state.stats.allowed++;
+          state.stats.bytesAllowed += bytes;
+          secondBucket.allowed++;
+        }
+      }
+      renderStats();
+    }, 260);
+
+    setInterval(() => {
+      state.history.push({...secondBucket});
+      if(state.history.length > 60) state.history.shift();
+      secondBucket = {allowed:0, dropped:0};
+      drawTrafficChart();
+      renderTopBlocked();
+    }, 1000);
+  }
+
+  /* ---------------- Live mode (real daemon) ---------------- */
+  async function tryLiveMode(){
+    // A saved custom address (set via Settings) wins; otherwise assume the
+    // dashboard is being served by the daemon itself, same-origin.
+    state.apiBase = savedSettings.apiBase || window.location.origin;
+    try{
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), 1400);
+      const res = await fetch(state.apiBase + '/api/health', {signal: ctrl.signal, headers: authHeaders()});
+      clearTimeout(t);
+      if(!res.ok) throw new Error('no daemon');
+      const health = await res.json();
+
+      state.liveMode = true;
+      document.getElementById('statusDot').style.background = 'var(--green)';
+      document.getElementById('statusLine').textContent = 'attached · live';
+      document.getElementById('statusIface').textContent = health.interface || 'eth0';
+      document.getElementById('ifaceLabel').textContent = health.interface || 'eth0';
+
+      await refreshRules();
+      startTopology();
+      // EventSource can't set custom headers, so the token (if any) rides
+      // along as a query param; the daemon's auth middleware checks both
+      // the Authorization header and ?token= for this one route.
+      const streamUrl = state.apiBase + '/api/stream' + (state.token ? ('?token=' + encodeURIComponent(state.token)) : '');
+      const es = new EventSource(streamUrl);
+      es.onmessage = (ev) => {
+        const s = JSON.parse(ev.data);
+        const dAllowed = Math.max(0, s.allowed - state.prevStats.allowed);
+        const dDropped = Math.max(0, s.dropped - state.prevStats.dropped);
+        state.history.push({allowed:dAllowed, dropped:dDropped});
+        if(state.history.length>60) state.history.shift();
+        state.prevStats = {allowed:s.allowed, dropped:s.dropped};
+        state.stats = {allowed:s.allowed, dropped:s.dropped, bytesAllowed:s.bytes_allowed, bytesDropped:s.bytes_dropped};
+        renderStats();
+        drawTrafficChart();
+      };
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  async function refreshRules(){
+    const res = await fetch(state.apiBase + '/api/rules', {headers: authHeaders()});
+    const data = await res.json();
+    state.rules = (data||[]).map(r => ({ip:r.ip, label:r.label, rateLimit:0, createdAt:r.created_at}));
+    renderRules();
+  }
+
+  /* ---------------- Modal wiring ---------------- */
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  function openModal(){
+    modalBackdrop.classList.add('open');
+    document.getElementById('ipInput').value='';
+    document.getElementById('labelInput').value='';
+    document.getElementById('rateInput').value='';
+    setTimeout(()=>document.getElementById('ipInput').focus(), 50);
+  }
+  function closeModal(){ modalBackdrop.classList.remove('open'); }
+
+  document.getElementById('addRuleBtn').addEventListener('click', openModal);
+  document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', (e)=>{ if(e.target===modalBackdrop) closeModal(); });
+
+  document.getElementById('confirmBlockBtn').addEventListener('click', async () => {
+    const ip = document.getElementById('ipInput').value.trim();
+    const label = document.getElementById('labelInput').value.trim();
+    const rate = parseInt(document.getElementById('rateInput').value.trim(), 10) || 0;
+    if(!ipValid(ip)){ toast('Enter a valid IPv4 address'); return; }
+    try{
+      await addRule(ip, label, rate);
+      closeModal();
+    }catch(err){ toast(err.message || 'Failed to add rule'); }
+  });
+
+  document.getElementById('ruleSearch').addEventListener('input', renderRules);
+
+  /* ---------------- Command palette ---------------- */
+  const paletteBackdrop = document.getElementById('paletteBackdrop');
+  const paletteInput = document.getElementById('paletteInput');
+  const paletteList = document.getElementById('paletteList');
+
+  const commands = [
+    {label:'Block an address', desc:'Add a new blocklist rule', action: () => { closePalette(); openModal(); }},
+    {label:'Jump to rules table', desc:'Scroll to blocklist', action: () => { closePalette(); document.getElementById('rulesPanel').scrollIntoView({behavior: reducedMotion?'auto':'smooth'}); }},
+    {label:'Jump to interdiction feed', desc:'Scroll to live packet view', action: () => { closePalette(); document.querySelector('.viz-panel').scrollIntoView({behavior: reducedMotion?'auto':'smooth'}); }},
+    {label:'Copy daemon status', desc:'Copy connection info to clipboard', action: () => { closePalette(); navigator.clipboard?.writeText(state.liveMode ? 'sentryxd: live' : 'sentryxd: demo mode'); toast('Copied status'); }},
+  ];
+
+  let paletteActive = 0;
+  function renderPalette(filter=''){
+    const f = filter.toLowerCase();
+    const filtered = commands.filter(c => c.label.toLowerCase().includes(f));
+    paletteList.innerHTML = filtered.map((c,i)=>`
+      <div class="palette-item ${i===paletteActive?'active':''}" data-idx="${i}">
+        <span>${c.label}</span><span class="desc">${c.desc}</span>
+      </div>
+    `).join('') || '<div class="empty-state">No matching command</div>';
+    paletteList.querySelectorAll('.palette-item').forEach(el=>{
+      el.addEventListener('click', ()=> filtered[+el.dataset.idx].action());
+    });
+    return filtered;
+  }
+  function openPalette(){
+    paletteBackdrop.classList.add('open');
+    paletteInput.value=''; paletteActive=0;
+    renderPalette();
+    setTimeout(()=>paletteInput.focus(),50);
+  }
+  function closePalette(){ paletteBackdrop.classList.remove('open'); }
+
+  document.getElementById('openPaletteBtn').addEventListener('click', openPalette);
+  paletteBackdrop.addEventListener('click', (e)=>{ if(e.target===paletteBackdrop) closePalette(); });
+  paletteInput.addEventListener('input', ()=>{ paletteActive=0; renderPalette(paletteInput.value); });
+  paletteInput.addEventListener('keydown', (e)=>{
+    const filtered = renderPalette(paletteInput.value);
+    if(e.key==='ArrowDown'){ e.preventDefault(); paletteActive=Math.min(paletteActive+1, filtered.length-1); renderPalette(paletteInput.value); }
+    if(e.key==='ArrowUp'){ e.preventDefault(); paletteActive=Math.max(paletteActive-1,0); renderPalette(paletteInput.value); }
+    if(e.key==='Enter' && filtered[paletteActive]){ filtered[paletteActive].action(); }
+    if(e.key==='Escape'){ closePalette(); }
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openPalette(); }
+    if(e.key==='Escape'){ closeModal(); closePalette(); }
+  });
+
+  /* ---------------- Nav ---------------- */
+  document.querySelectorAll('.nav-item').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      const target = item.dataset.nav;
+      if(target==='settings'){
+        openSettings();
+        return; // don't mark settings "active" — it's a modal, not a page section
+      }
+      document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+      item.classList.add('active');
+      if(target==='rules') document.getElementById('rulesPanel').scrollIntoView({behavior: reducedMotion?'auto':'smooth', block:'start'});
+      if(target==='traffic') document.querySelector('.viz-panel').scrollIntoView({behavior: reducedMotion?'auto':'smooth', block:'start'});
+    });
+  });
+
+  /* ---------------- Settings modal ---------------- */
+  const settingsBackdrop = document.getElementById('settingsBackdrop');
+  function openSettings(){
+    document.getElementById('apiBaseInput').value = state.apiBase && state.apiBase !== window.location.origin ? state.apiBase : (savedSettings.apiBase || '');
+    document.getElementById('tokenInput').value = state.token || '';
+    document.getElementById('tokenInput').type = 'password';
+    document.getElementById('ambientToggle').checked = state.ambient !== false;
+    const resultEl = document.getElementById('connTestResult');
+    resultEl.className = 'conn-test-result';
+    document.getElementById('connTestText').textContent = 'not tested yet';
+    document.getElementById('settingsStatus').textContent = state.liveMode
+      ? 'Connected to ' + state.apiBase
+      : 'Currently in demo mode — no daemon reachable at ' + (state.apiBase || window.location.origin);
+    settingsBackdrop.classList.add('open');
+  }
+  function closeSettings(){ settingsBackdrop.classList.remove('open'); }
+  document.getElementById('cancelSettingsBtn').addEventListener('click', closeSettings);
+  settingsBackdrop.addEventListener('click', (e)=>{ if(e.target===settingsBackdrop) closeSettings(); });
+
+  document.getElementById('tokenRevealBtn').addEventListener('click', () => {
+    const input = document.getElementById('tokenInput');
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    document.getElementById('tokenRevealBtn').title = showing ? 'Show token' : 'Hide token';
+  });
+
+  document.getElementById('testConnBtn').addEventListener('click', async () => {
+    const resultEl = document.getElementById('connTestResult');
+    const textEl = document.getElementById('connTestText');
+    const base = document.getElementById('apiBaseInput').value.trim().replace(/\/$/, '') || window.location.origin;
+    const testToken = document.getElementById('tokenInput').value.trim();
+
+    resultEl.className = 'conn-test-result pending';
+    textEl.textContent = 'checking ' + base + '…';
+
+    try{
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), 3000);
+      const res = await fetch(base + '/api/health', {
+        signal: ctrl.signal,
+        headers: testToken ? {'Authorization': 'Bearer ' + testToken} : {}
+      });
+      clearTimeout(t);
+      if(!res.ok){
+        resultEl.className = 'conn-test-result fail';
+        textEl.textContent = res.status === 401 ? 'reachable, but token was rejected' : 'daemon returned ' + res.status;
+        return;
+      }
+      const health = await res.json();
+      resultEl.className = 'conn-test-result ok';
+      textEl.textContent = 'connected — attached to ' + (health.interface || 'unknown interface');
+    }catch(e){
+      resultEl.className = 'conn-test-result fail';
+      textEl.textContent = 'unreachable — check the address and that sentryxd is running';
+    }
+  });
+
+  document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+    const apiBase = document.getElementById('apiBaseInput').value.trim().replace(/\/$/, '');
+    const token = document.getElementById('tokenInput').value.trim();
+    const ambient = document.getElementById('ambientToggle').checked;
+
+    savedSettings.apiBase = apiBase;
+    savedSettings.token = token;
+    savedSettings.ambient = ambient;
+    saveSettings(savedSettings);
+
+    toast('Settings saved — reconnecting…');
+    closeSettings();
+    // Simplest reliable way to apply a new API base/token everywhere
+    // (health check, rules, SSE stream, demo fallback) is a fresh load.
+    setTimeout(() => window.location.reload(), 300);
+  });
+
+  /* ---------------- Boot ---------------- */
+  window.addEventListener('resize', () => { resizeViz(); drawTrafficChart(); resizeTopo(); });
+
+  (async function boot(){
+    resizeViz();
+    resizeTopo();
+    drawTopo();
+    stepViz();
+    if(!reducedMotion){
+      setInterval(()=>{ if(state.ambient && Math.random()<0.5) spawnParticle(false,''); }, 5000); // idle ambient particle, subtle
+    }
+
+    const live = await tryLiveMode();
+    if(!live) startDemo();
+    drawTrafficChart();
+  })();
+})();
+</script>
+</body>
+</html>

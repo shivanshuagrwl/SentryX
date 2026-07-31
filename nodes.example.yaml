@@ -1,0 +1,22 @@
+# SENTRYX controller — fleet definition
+#
+# Push a policy.yaml to every node here in one shot:
+#   sxctl controller push  --nodes nodes.yaml --policy policy.yaml
+# Check that they're all alive:
+#   sxctl controller status --nodes nodes.yaml
+#
+# `token: env:NAME` reads the real token from that environment variable at
+# run time, so nothing secret has to live in this file. Omit `token`
+# entirely for a node running sentryxd -insecure (local dev only).
+nodes:
+  - name: edge-us-east
+    host: http://10.0.1.11:9090
+    token: env:SENTRYX_TOKEN_US_EAST
+
+  - name: edge-eu-west
+    host: http://10.0.2.11:9090
+    token: env:SENTRYX_TOKEN_EU_WEST
+
+  - name: edge-ap-south
+    host: http://10.0.3.11:9090
+    token: env:SENTRYX_TOKEN_AP_SOUTH
