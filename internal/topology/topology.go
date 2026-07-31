@@ -42,7 +42,7 @@ type Event struct {
 	IP        string    `json:"ip"`
 	Label     string    `json:"label,omitempty"`
 	Reason    string    `json:"reason"`
-	Country   string    `json:"country,omitempty"`   // ISO 3166-1 alpha-2, empty if unresolved
+	Country   string    `json:"country,omitempty"` // ISO 3166-1 alpha-2, empty if unresolved
 	Lat       float64   `json:"lat,omitempty"`
 	Lon       float64   `json:"lon,omitempty"`
 	Resolved  bool      `json:"resolved"` // false means Country/Lat/Lon are meaningless — plot nothing, or plot at a "somewhere" marker

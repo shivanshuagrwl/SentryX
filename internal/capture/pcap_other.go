@@ -45,4 +45,4 @@ func (r *Recorder) Start(duration time.Duration) error { return errUnsupported }
 func (r *Recorder) Stop() error                        { return nil }
 func (r *Recorder) Snapshot() []byte                   { return nil }
 func (r *Recorder) Status() Status                     { return Status{} }
-func (r *Recorder) Close() error                        { return nil }
+func (r *Recorder) Close() error                       { return nil }
