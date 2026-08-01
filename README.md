@@ -10,7 +10,7 @@ traffic. Rules are pushed live from a Go control daemon through eBPF maps,
 so nothing ever needs to be recompiled or reloaded to block an address,
 change a rate limit, or read live traffic stats.
 
-```
+
 ```
 ███████╗███████╗███╗   ██╗████████╗██████╗ ██╗   ██╗██╗  ██╗
 ██╔════╝██╔════╝████╗  ██║╚══██╔══╝██╔══██╗╚██╗ ██╔╝╚██╗██╔╝
