@@ -652,7 +652,8 @@
   <!-- ============ MAIN ============ -->
   <main class="main">
     <div class="demo-banner" id="demoBanner">
-      <span class="dot"></span><span><b>Demo mode</b> — no sentryxd daemon detected. Showing simulated traffic; rules added here stay local to this tab.</span>
+      <span class="dot"></span><span id="demoBannerText"><b>Demo mode</b> — no sentryxd daemon detected. Showing simulated traffic; rules added here stay local to this tab.</span>
+      <button type="button" id="demoBannerAction" style="display:none;background:none;border:1px solid var(--border-card);color:var(--text);border-radius:7px;padding:3px 10px;font-size:11.5px;cursor:pointer;margin-left:4px;">Add token</button>
     </div>
 
     <div class="topbar">
@@ -1275,11 +1276,32 @@
 
   /* ---------------- Demo data generator ---------------- */
   let demoTicker = null;
-  function startDemo(){
+  // 'live' | 'auth' | 'none' — last outcome of tryLiveMode(), so Settings'
+  // status line and the banner's "Add token" button can both describe
+  // what's actually happening instead of a generic "no daemon" guess.
+  let lastConnState = 'none';
+  // authNeeded=true means /api/health actually answered (the daemon IS
+  // there and reachable) but rejected the request with 401/403 — a very
+  // different situation from "nothing's listening" and worth telling the
+  // operator apart, otherwise they go debug the daemon/network when the
+  // daemon was fine all along and just wanted a token. See tryLiveMode().
+  function startDemo(authNeeded){
     state.liveMode = false;
     document.getElementById('demoBanner').classList.add('show');
+    const bannerText = document.getElementById('demoBannerText');
+    const bannerAction = document.getElementById('demoBannerAction');
+    if(authNeeded){
+      lastConnState = 'auth';
+      bannerText.innerHTML = '<b>Daemon found, but locked</b> — sentryxd is running and reachable, it just rejected this request without a valid API token. Not a "no daemon" problem — showing simulated traffic until a token is set.';
+      bannerAction.style.display = 'inline-block';
+      document.getElementById('statusLine').textContent = 'reachable · unauthorized';
+    } else {
+      lastConnState = 'none';
+      bannerText.innerHTML = '<b>Demo mode</b> — no sentryxd daemon detected. Showing simulated traffic; rules added here stay local to this tab.';
+      bannerAction.style.display = 'none';
+      document.getElementById('statusLine').textContent = 'demo mode';
+    }
     document.getElementById('statusDot').style.background = 'var(--amber)';
-    document.getElementById('statusLine').textContent = 'demo mode';
     document.getElementById('statusIface').textContent = 'simulated';
     document.getElementById('ifaceLabel').textContent = 'eth0 (simulated)';
 
@@ -1336,10 +1358,20 @@
       const t = setTimeout(()=>ctrl.abort(), 1400);
       const res = await fetch(state.apiBase + '/api/health', {signal: ctrl.signal, headers: authHeaders()});
       clearTimeout(t);
+      if(res.status === 401 || res.status === 403){
+        // The daemon answered — it's up and reachable — it just didn't
+        // like our (missing/wrong) token. Distinct from "couldn't reach
+        // anything at all" below, so surface it as such instead of a
+        // generic thrown error that collapses both cases into one banner.
+        const err = new Error('unauthorized');
+        err.authNeeded = true;
+        throw err;
+      }
       if(!res.ok) throw new Error('no daemon');
       const health = await res.json();
 
       state.liveMode = true;
+      lastConnState = 'live';
       document.getElementById('statusDot').style.background = 'var(--green)';
       document.getElementById('statusLine').textContent = 'attached · live';
       document.getElementById('statusIface').textContent = health.interface || 'eth0';
@@ -1365,7 +1397,7 @@
       };
       return true;
     }catch(e){
-      return false;
+      return e && e.authNeeded ? 'auth' : false;
     }
   }
 
@@ -1481,10 +1513,18 @@
     document.getElementById('connTestText').textContent = 'not tested yet';
     document.getElementById('settingsStatus').textContent = state.liveMode
       ? 'Connected to ' + state.apiBase
-      : 'Currently in demo mode — no daemon reachable at ' + (state.apiBase || window.location.origin);
+      : lastConnState === 'auth'
+        ? 'sentryxd is reachable at ' + (state.apiBase || window.location.origin) + ' but rejected the request — enter the token from its sentryx.env below'
+        : 'Currently in demo mode — no daemon reachable at ' + (state.apiBase || window.location.origin);
     settingsBackdrop.classList.add('open');
   }
   function closeSettings(){ settingsBackdrop.classList.remove('open'); }
+  document.getElementById('demoBannerAction').addEventListener('click', () => {
+    openSettings();
+    const input = document.getElementById('tokenInput');
+    input.focus();
+    input.select();
+  });
   document.getElementById('cancelSettingsBtn').addEventListener('click', closeSettings);
   settingsBackdrop.addEventListener('click', (e)=>{ if(e.target===settingsBackdrop) closeSettings(); });
 
@@ -1556,7 +1596,7 @@
     }
 
     const live = await tryLiveMode();
-    if(!live) startDemo();
+    if(live !== true) startDemo(live === 'auth');
     drawTrafficChart();
   })();
 })();

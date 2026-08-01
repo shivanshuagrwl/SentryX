@@ -282,8 +282,33 @@ func checkCapabilities() Check {
 	if !hasBPF {
 		missing = append(missing, "CAP_BPF")
 	}
-	return check("Root / CAP_NET_ADMIN+CAP_BPF", StatusFail,
-		"not root and missing "+strings.Join(missing, ", ")+" — run as root, or `setcap cap_net_admin,cap_bpf+ep` on the binary")
+	detail := "this process (not sentryxd) is not root and missing " + strings.Join(missing, ", ") +
+		" — run as root, or `setcap cap_net_admin,cap_bpf+ep` on the binary"
+	if activeSystemdService("sentryxd") {
+		// A very common false alarm: someone runs `sxctl doctor` after
+		// sentryxd is already installed and running fine as a systemd
+		// service (which gets its own AmbientCapabilities, independent
+		// of whatever privileges this doctor invocation happens to have).
+		// Without this note, a FAIL here reads as "the daemon is broken"
+		// when it isn't — this check only ever describes the process
+		// running doctor itself.
+		detail += " (sentryxd.service looks active — that daemon has its own capabilities via systemd and is unaffected by this)"
+	}
+	return check("Root / CAP_NET_ADMIN+CAP_BPF", StatusFail, detail)
+}
+
+// activeSystemdService best-effort checks `systemctl is-active <name>` —
+// never errors out doctor if systemctl isn't present or the check fails
+// for any reason, since this is purely a UX note, not a real check.
+func activeSystemdService(name string) bool {
+	if _, err := exec.LookPath("systemctl"); err != nil {
+		return false
+	}
+	out, err := exec.Command("systemctl", "is-active", name).Output()
+	if err != nil {
+		return false
+	}
+	return strings.TrimSpace(string(out)) == "active"
 }
 
 // readCapEff reads the current process's effective-capabilities bitmask
